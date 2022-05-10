@@ -93,6 +93,36 @@ def get_partner_and_last_message_from_user(request, pk):
     sorted_data = sorted(conversation_list, key=lambda x: datetime.datetime.strptime(x['created_on'], '%d.%m.%Y %H:%M'), reverse=True)
     return Response(sorted_data)
 
+@api_view(['GET'])
+def get_messages_with_user(request, pk, name):
+    print(name)
+    active_user = User.objects.get(id=pk)
+    # convo_partner = data.name
+    conversations = active_user.conversation.all()
+    sorted_data = []
+    for convo in conversations:
+        for member in convo.members.all():
+            if member.username == name:
+                serialized_messages = MessageSerializer(convo.messages.all(), many=True).data
+                for message in serialized_messages:
+                    sorted_data.append(
+                        {
+                            'message': message['message'],
+                            'created_by': message['created_by']
+                        }
+                    )
+                return Response(sorted_data)
+
+    # serialized = ConversationSerializer(conversations, many=True)
+    # # for convo in serialized.data:
+    # #     for member in convo['members']:
+    # #         if member['username'] == 'John':
+    # #             print(convo)
+    # #             convo_object = Conversation.objects.get(id=convo['id'])
+    # #             print(MessageSerializer(convo_object.messages.all()))
+    # #             return Response(convo)
+    # return Response('placeholder')
+
 
 @api_view(['POST'])
 def create_new_message(request):

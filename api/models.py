@@ -14,8 +14,8 @@ class Message(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
     created_by = models.ForeignKey(User, related_name='message', on_delete=models.CASCADE, null=True, blank=True)
-    senderID = models.CharField(max_length=500, null=True)
-    ownedByCurrentUser = models.CharField(max_length=10, null=True)
+    # senderID = models.CharField(max_length=500, null=True)
+    # ownedByCurrentUser = models.CharField(max_length=10, null=True)
 
     def __str__(self):
         return self.message

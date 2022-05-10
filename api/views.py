@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from api.models import Conversation, Message, Avatar
 from .serializers import ConversationSerializer, MessageSerializer
 import base64
+import datetime
 
 
 @api_view(['GET'])
@@ -41,16 +42,25 @@ def get_conversations_from_user(request, pk):
         serialized_messages = MessageSerializer(messages, many=True)
         # loop  through messages belonging to each conversation
         for message in serialized_messages.data:
+            # convert django garbage date format to normal
+            created_on = message['created_on']
+            created_on = datetime.datetime.strptime(created_on, '%Y-%m-%dT%H:%M:%S.%fZ')
+            created_on = created_on.strftime("%d.%m.%Y %H:%M")
             message_list.append({
                 'message': message['message'],
-                'created_on': message['created_on'],
+                'created_on': created_on,
                 'created_by': message['created_by']
             })
             convo['messages'] = message_list
         # clear the list so that each conversation is attached only its own messages
         message_list = []
-    # print(lst)
-    return Response(serialized_convos.data)
+    # Sort data based on messages belonging to each convo; convo with newest message is first in list etc
+    sorted_data = sorted(
+        serialized_convos.data,
+        key=lambda x:
+            max(datetime.datetime.strptime(msg['created_on'], '%d.%m.%Y %H:%M') for msg in x['messages']),
+        reverse=True)
+    return Response(sorted_data)
 
 
 
@@ -80,23 +90,25 @@ def get_partner_and_last_message_from_user(request, pk):
                      }
 
                 )
-
-    return Response(conversation_list)
+    sorted_data = sorted(conversation_list, key=lambda x: datetime.datetime.strptime(x['created_on'], '%d.%m.%Y %H:%M'), reverse=True)
+    return Response(sorted_data)
 
 
 @api_view(['POST'])
 def create_new_message(request):
     # runs every time a new message is sent in chat and creates a new entry in DB
-    user = User.objects.get(id=1)
+    data = request.data
+    userID = data['created_by']
+    user = User.objects.get(id=userID)
     conversation = Conversation.objects.get(id=1)
     # message_content = request.data['message_content']
-    data = request.data
+
     print(data)
     message = Message.objects.create(message=data['message'],
                                      conversation=conversation,
                                      created_by=user,
-                                     senderID=data['senderID'],
-                                     ownedByCurrentUser=data['ownedByCurrentUser']
+                                     # senderID=data['senderID'],
+                                     # # ownedByCurrentUser=data['ownedByCurrentUser']
                                      )
     # message.save()
     return Response("Message succesfuly saved")

@@ -18,3 +18,9 @@ urlpatterns = [
 
 
 ]
+
+# sorted_data = sorted(
+#         serialized_convos.data,
+#         key=lambda x:
+#             max(datetime.datetime.strptime(msg['created_on'], '%d.%m.%Y %H:%M') for msg in x['messages']),
+#         reverse=True)

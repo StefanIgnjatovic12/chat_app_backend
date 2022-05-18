@@ -15,13 +15,10 @@ urlpatterns = [
     path('save-message/', views.create_new_message),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('current-user/', views.get_current_user)
+    path('user-profile/<str:pk>', views.get_user_profile),
+    path('reveal-profile/', views.reveal_profile),
+    path('revealed-profile-data/<str:pk>', views.get_revealed_profiles_from_convo)
+
 
 
 ]
-
-# sorted_data = sorted(
-#         serialized_convos.data,
-#         key=lambda x:
-#             max(datetime.datetime.strptime(msg['created_on'], '%d.%m.%Y %H:%M') for msg in x['messages']),
-#         reverse=True)

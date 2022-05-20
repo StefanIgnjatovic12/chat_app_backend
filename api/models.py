@@ -7,6 +7,8 @@ class Conversation(models.Model):
     members = models.ManyToManyField(User, related_name='conversation')
     first_member_reveal = models.BooleanField(default=False, null=True)
     second_member_reveal = models.BooleanField(default=False, null=True)
+    first_member_id = models.CharField(max_length=100, null=True, blank=True)
+    second_member_id = models.CharField(max_length=100, null=True, blank=True)
     def __str__(self):
         return self.title
 
@@ -41,8 +43,8 @@ class Profile(models.Model):
     age = models.IntegerField(null=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=100, null=True)
     location = models.CharField(max_length=50, null=True)
-    description = models.CharField(max_length=500, null=True)
-    interests = models.CharField(max_length=500, null=True)
+    description = models.CharField(max_length=300, null=True)
+    interests = models.CharField(max_length=300, null=True)
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True)
     real_name = models.CharField(max_length=50, null=True)
     real_avatar = models.ImageField(upload_to='avatars', null=True)

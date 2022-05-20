@@ -28,7 +28,6 @@ def get_conversation_from_message(request, pk):
 @api_view(['GET'])
 def get_conversations_from_user(request, pk):
     # get all conversations to which user belongs
-    print(request.user)
     user = User.objects.get(id=pk)
     conversations = user.conversation.all()
     message_list = []
@@ -150,14 +149,13 @@ def get_messages_with_user(request, pk, name):
 def create_new_message(request):
     # runs every time a new message is sent in chat and creates a new entry in DB
     data = request.data
-    print(data['created_by'])
+
     convo_id = data['convo_id']
     userID = data['created_by']
     user = User.objects.get(id=userID)
     conversation = Conversation.objects.get(id=convo_id)
     # message_content = request.data['message_content']
 
-    print(data)
     message = Message.objects.create(message=data['message'],
                                      conversation=conversation,
                                      created_by=user,
@@ -194,26 +192,33 @@ def get_user_profile(request, pk):
 @api_view(['POST'])
 def reveal_profile(request):
     data = request.data
+    user = request.user
     # get conversation in question
     convo = Conversation.objects.get(id=data['conversation'])
     # if neither conversation member has revealed, do it for the first member
     if convo.first_member_reveal == False and convo.second_member_reveal == False:
-        convo.first_member_reveal= True
+        convo.first_member_reveal = True
+        convo.first_member_id = user.id
         convo.save()
     # if first member is revealed, reveal for the second
     elif convo.first_member_reveal == True and convo.second_member_reveal == False:
         convo.second_member_reveal = True
+        convo.second_member_id = user.id
         convo.save()
     else:
         return Response('Both profiles already revealed')
-    return Response('User profiles succesfuly revealed')
+    return Response({
+        'convo': convo.id,
+        'user_id': user.id,
+        'clicked': 'true'
+    })
+
 
 # after both people click the reveal button, alert will pop up notifying and asking
 # if user wants to see the partners profile info > on button click there trigger fetch
 # to this endpoint
 @api_view(['GET'])
 def get_revealed_profiles_from_convo(request, pk):
-    print(request.user)
     convo = Conversation.objects.get(id=pk)
     # check if both users have agreed to reveal
     if convo.first_member_reveal == True and convo.second_member_reveal == True:
@@ -222,10 +227,11 @@ def get_revealed_profiles_from_convo(request, pk):
             # get the conversation partner to return their data
             if request.user != member:
                 print(f'This is the member {member}')
-                profile = Profile.objects.get(user_id = member.id)
+                profile = Profile.objects.get(user_id=member.id)
                 with open(str(profile.real_avatar), "rb") as image_file_2:
                     encoded_real_avatar = base64.b64encode(image_file_2.read())
                 return Response([{
+                    'username': member.username,
                     'age': profile.age,
                     'gender': profile.gender,
                     'location': profile.location,
@@ -234,7 +240,42 @@ def get_revealed_profiles_from_convo(request, pk):
                     'reason': profile.reason,
                     'real_name': profile.real_name,
                     'real_avatar': encoded_real_avatar,
+                    # 'id': member.id
 
                 }
                 ]
                 )
+    else:
+        return Response('1 or more members havent revealed their profile')
+
+
+@api_view(['GET'])
+def check_reveal_status(request, pk):
+    # takes convo id and checks if the user.id of the user making the request matches one of the member_ids
+    # the match will only occur if the user has revealed their profile within the convo in question
+    convo = Conversation.objects.get(id=pk)
+    user = request.user
+    # print(f'user id: {user.id}, first_member_id: {convo.first_member_id}, second_member_id: {convo.second_member_id}')
+    # print(
+    #     f'first member check: {user.id == convo.first_member_id}, second member check: {user.id == convo.second_member_id}')
+    # print(f'type of first member: {type(convo.first_member_id)}, type of user id: {type(user.id)}')
+    if convo.first_member_id is not None and user.id == int(convo.first_member_id):
+        return Response({
+            'user_id': user.id,
+            'convo_id': convo.id,
+            'revealed': True
+        })
+        # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
+    elif (convo.second_member_id is not None and user.id == int(convo.second_member_id)):
+        # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
+        return Response({
+            'user_id': user.id,
+            'convo_id': convo.id,
+            'revealed': True
+        })
+    else:
+        return Response({
+            'user_id': user.id,
+            'convo_id': convo.id,
+            'revealed': False
+        })

@@ -38,16 +38,16 @@ class Profile(models.Model):
         ('Other', 'Other')
     ]
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='avatar')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to='avatars')
-    age = models.IntegerField(null=True)
-    gender = models.CharField(choices=GENDER_CHOICES, max_length=100, null=True)
-    location = models.CharField(max_length=50, null=True)
-    description = models.CharField(max_length=300, null=True)
-    interests = models.CharField(max_length=300, null=True)
-    reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True)
-    real_name = models.CharField(max_length=50, null=True)
-    real_avatar = models.ImageField(upload_to='avatars', null=True)
+    age = models.CharField(max_length=3, null=True, blank=True)
+    gender = models.CharField(choices=GENDER_CHOICES, max_length=100, null=True, blank=True)
+    location = models.CharField(max_length=50, null=True, blank=True)
+    description = models.CharField(max_length=300, null=True, blank=True)
+    interests = models.CharField(max_length=300, null=True, blank=True)
+    reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
+    real_name = models.CharField(max_length=50, null=True, blank=True)
+    real_avatar = models.ImageField(upload_to='avatars', null=True, blank=True)
 
 
     def __str__(self):

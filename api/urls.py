@@ -18,7 +18,8 @@ urlpatterns = [
     path('user-profile/<str:pk>', views.get_user_profile),
     path('reveal-profile/', views.reveal_profile),
     path('revealed-profile-data/<str:pk>', views.get_revealed_profiles_from_convo),
-    path('check-reveal-status/<str:pk>', views.check_reveal_status)
+    path('check-reveal-status/<str:pk>', views.check_reveal_status),
+    path('edit-profile/', views.edit_profile)
 
 
 

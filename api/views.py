@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from api.models import Conversation, Message, Profile
-from .serializers import ConversationSerializer, MessageSerializer
+from .serializers import ConversationSerializer, MessageSerializer, ProfileSerializer
 import base64
 import datetime
 
@@ -279,3 +279,20 @@ def check_reveal_status(request, pk):
             'convo_id': convo.id,
             'revealed': False
         })
+
+@api_view(['PATCH'])
+def edit_profile(request):
+    user = request.user
+    profile = user.profile
+    data = request.data
+
+    # create new dict containing only filled out fields of the edit form
+    filtered_data = {}
+    for (key, value) in data.items():
+        if value != '':
+            filtered_data[key] = value
+    serializer = ProfileSerializer(instance=profile, data=filtered_data, partial=True)
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+        return Response('Profile succefuly edited')
+    return Response('Profile edit failed')

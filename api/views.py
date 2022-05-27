@@ -283,7 +283,6 @@ def check_reveal_status(request, pk):
 @api_view(['PATCH'])
 def edit_profile(request):
     user = request.user
-    profile = user.profile
     data = request.data
 
     # create new dict containing only filled out fields of the edit form
@@ -291,8 +290,35 @@ def edit_profile(request):
     for (key, value) in data.items():
         if value != '':
             filtered_data[key] = value
+
+    # for when user is editing their existing profile
+    if Profile.objects.filter(user=user).exists():
+    # if user.profile.exists():
+        print('profile exists')
+        profile = user.profile
+     # for when user has just signed up and is adding profile details for the first time
+    else:
+        print('profile doesnt exist, creating profile')
+        profile = Profile.objects.create(user=user)
+        print(profile)
+
     serializer = ProfileSerializer(instance=profile, data=filtered_data, partial=True)
     if serializer.is_valid(raise_exception=True):
         serializer.save()
         return Response('Profile succefuly edited')
     return Response('Profile edit failed')
+
+@api_view(['GET'])
+def profile_check_on_first_signin(request):
+    user = request.user
+    if Profile.objects.filter(user=user).exists():
+        return Response({'profile_filled_check': True})
+    return Response({'profile_filled_check': False})
+
+
+@api_view(['DELETE'])
+def delete_convo(request, pk):
+    convo = Conversation.objects.get(id=pk)
+    convo.delete()
+    return Response(f'Convo with id {pk} has been deleted')
+

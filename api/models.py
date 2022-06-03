@@ -32,9 +32,9 @@ class Profile(models.Model):
     ]
 
     REASON_CHOICES = [
-        ('To meet friends', 'To meet friends'),
-        ('To kill time', 'To kill time'),
-        ('To test out the chat app', 'To test out the chat app'),
+        ('to meet friends', 'to meet friends'),
+        ('to kill time', 'to kill time'),
+        ('to test out the chat app', 'to test out the chat app'),
         ('Other', 'Other')
     ]
 

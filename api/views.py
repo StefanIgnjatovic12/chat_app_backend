@@ -149,10 +149,10 @@ def get_messages_with_user(request, pk, name):
 def create_new_message(request):
     # runs every time a new message is sent in chat and creates a new entry in DB
     data = request.data
-
     convo_id = data['convo_id']
     userID = data['created_by']
     user = User.objects.get(id=userID)
+    print(convo_id)
     conversation = Conversation.objects.get(id=convo_id)
     # message_content = request.data['message_content']
 
@@ -214,6 +214,34 @@ def reveal_profile(request):
     })
 
 
+@api_view(['POST'])
+def hide_profile(request):
+    data = request.data
+    user = request.user
+    # get conversation in question
+    convo = Conversation.objects.get(id=data['conversation'])
+    print(f'requesting user: {user}, id: {user.id}')
+    print(f'first member reveal: {convo.first_member_reveal}, second: {convo.second_member_reveal}')
+    print(f'first member ID {convo.first_member_id}, second: {convo.second_member_id}')
+    print(f'type of user id: {type(user.id)}, of member: {type(convo.first_member_id)}')
+    # if neither conversation member has revealed, do it for the first member
+    if convo.first_member_reveal == True and int(convo.first_member_id) == user.id:
+        print('first scenario match')
+        convo.first_member_reveal = False
+        convo.save()
+    elif convo.second_member_reveal == True and int(convo.second_member_id) == user.id:
+        print('second scenario match')
+        convo.second_member_reveal = False
+        convo.save()
+    else:
+        return Response('Neither members profile is revealed')
+    return Response({
+        'convo': convo.id,
+        'user_id': user.id,
+        'clicked': 'false'
+    })
+
+
 # after both people click the reveal button, alert will pop up notifying and asking
 # if user wants to see the partners profile info > on button click there trigger fetch
 # to this endpoint
@@ -255,18 +283,18 @@ def check_reveal_status(request, pk):
     # the match will only occur if the user has revealed their profile within the convo in question
     convo = Conversation.objects.get(id=pk)
     user = request.user
-    # print(f'user id: {user.id}, first_member_id: {convo.first_member_id}, second_member_id: {convo.second_member_id}')
-    # print(
-    #     f'first member check: {user.id == convo.first_member_id}, second member check: {user.id == convo.second_member_id}')
-    # print(f'type of first member: {type(convo.first_member_id)}, type of user id: {type(user.id)}')
-    if convo.first_member_id is not None and user.id == int(convo.first_member_id):
+    if convo.first_member_id is not None \
+            and user.id == int(convo.first_member_id) \
+            and convo.first_member_reveal == True:
         return Response({
             'user_id': user.id,
             'convo_id': convo.id,
             'revealed': True
         })
         # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
-    elif (convo.second_member_id is not None and user.id == int(convo.second_member_id)):
+    elif (convo.second_member_id is not None
+          and user.id == int(convo.second_member_id)) \
+          and convo.second_member_reveal == True:
         # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
         return Response({
             'user_id': user.id,
@@ -279,6 +307,7 @@ def check_reveal_status(request, pk):
             'convo_id': convo.id,
             'revealed': False
         })
+
 
 @api_view(['PATCH'])
 def edit_profile(request):
@@ -293,10 +322,10 @@ def edit_profile(request):
 
     # for when user is editing their existing profile
     if Profile.objects.filter(user=user).exists():
-    # if user.profile.exists():
+        # if user.profile.exists():
         print('profile exists')
         profile = user.profile
-     # for when user has just signed up and is adding profile details for the first time
+    # for when user has just signed up and is adding profile details for the first time
     else:
         print('profile doesnt exist, creating profile')
         profile = Profile.objects.create(user=user)
@@ -307,6 +336,7 @@ def edit_profile(request):
         serializer.save()
         return Response('Profile succefuly edited')
     return Response('Profile edit failed')
+
 
 @api_view(['GET'])
 def profile_check_on_first_signin(request):
@@ -321,4 +351,3 @@ def delete_convo(request, pk):
     convo = Conversation.objects.get(id=pk)
     convo.delete()
     return Response(f'Convo with id {pk} has been deleted')
-

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from api.models import Conversation, Message, Profile
+from drf_extra_fields.fields import Base64ImageField
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -21,6 +23,7 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ProfileSerializer(serializers.ModelSerializer):
+    real_avatar = Base64ImageField(required=False)
 
     class Meta:
         model = Profile

@@ -128,12 +128,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
-MEDIA_ROOT = 'C:/Users/Stefan/Desktop/python/chat_app_backend/avatars/'
+# MEDIA_ROOT = 'C:/Users/Stefan/Desktop/python/chat_app_backend/avatars/'
+MEDIA_ROOT = 'D:/Cloned Chat App/chat_app_backend/'
 MEDIA_URL = ('avatars/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # JWT

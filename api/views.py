@@ -317,9 +317,10 @@ def edit_profile(request):
     # create new dict containing only filled out fields of the edit form
     filtered_data = {}
     for (key, value) in data.items():
-        if value != '':
+        if value != '' and value != None:
             filtered_data[key] = value
 
+    print(filtered_data)
     # for when user is editing their existing profile
     if Profile.objects.filter(user=user).exists():
         # if user.profile.exists():

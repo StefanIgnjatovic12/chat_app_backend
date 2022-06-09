@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+
 # Create your models here.
 class Conversation(models.Model):
     title = models.CharField(max_length=100, null=False, default='')
@@ -47,7 +48,7 @@ class Profile(models.Model):
     interests = models.CharField(max_length=300, null=True, blank=True)
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
     real_name = models.CharField(max_length=50, null=True, blank=True)
-    real_avatar = models.ImageField(upload_to='avatars', null=True, blank=True)
+    real_avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
 
     def __str__(self):

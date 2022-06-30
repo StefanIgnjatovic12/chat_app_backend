@@ -22,5 +22,6 @@ urlpatterns = [
     path('check-reveal-status/<str:pk>', views.check_reveal_status),
     path('edit-profile/', views.edit_profile),
     path('delete-convo/<str:pk>', views.delete_convo),
-    path('profile-check-first-signin/', views.profile_check_on_first_signin)
+    path('profile-check-first-signin/', views.profile_check_on_first_signin),
+    path('create-new-chat/', views.create_new_chat)
 ]

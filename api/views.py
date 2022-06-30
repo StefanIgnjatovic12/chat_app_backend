@@ -5,6 +5,7 @@ from api.models import Conversation, Message, Profile
 from .serializers import ConversationSerializer, MessageSerializer, ProfileSerializer
 import base64
 import datetime
+import random
 
 
 @api_view(['GET'])
@@ -309,7 +310,7 @@ def check_reveal_status(request, pk):
         # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
     elif (convo.second_member_id is not None
           and user.id == int(convo.second_member_id)) \
-          and convo.second_member_reveal == True:
+            and convo.second_member_reveal == True:
         # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
         return Response({
             'user_id': user.id,
@@ -367,3 +368,63 @@ def delete_convo(request, pk):
     convo = Conversation.objects.get(id=pk)
     convo.delete()
     return Response(f'Convo with id {pk} has been deleted')
+
+
+@api_view(['GET'])
+def create_new_chat(request):
+    # list of all users
+    users = list(User.objects.all())
+
+    requesting_user = request.user
+    print(requesting_user)
+
+    # randomly select conversation partner
+    # FIGURE OUT WAY TO MAKE SURE IT'S NOT THE SAME AS THE REQUESTING USER
+    random_user = random.choice(users)
+    # check if requesting user already has a convo with the random user
+    random_user_passes_checks = False
+
+    # While loop so that if checks are failed, a new random user is generated and the whole thing repeats
+    while random_user_passes_checks is False:
+        # Check if conversation where requesting user is the first member exists
+        if Conversation.objects.filter(first_member_id=requesting_user.id).exists():
+            # if it exists, get a list of those convos
+            list_of_convos_to_check = Conversation.objects.filter(first_member_id=requesting_user.id)
+            # loop through list of convos and check if randomly selected user is the second member of any of them
+            for convo in list_of_convos_to_check:
+                if convo.second_member_id == random_user.id:
+                    print('The two users already have a convo, first check')
+                else:
+                    # if the random user isn't a member of the convo, stop the while loop
+                    random_user_passes_checks = True
+                    print('while loop ended, first check')
+
+        # Check if conversation where requesting user is the second member exists
+        elif Conversation.objects.filter(second_member_id=requesting_user.id).exists():
+            list_of_convos_to_check = Conversation.objects.filter(second_member_id=requesting_user.id)
+            # if it exists, get a list of those convos
+            for convo in list_of_convos_to_check:
+
+                if convo.first_member_id == random_user.id:
+                    print('The two users already have a convo, first check')
+                else:
+                    # if the random user isn't a member of the convo, stop the while loop
+                    random_user_passes_checks = True
+                    print('while loop ended, second check')
+
+        else:
+            # if there are no matching convos, the check is automatically passed
+            random_user_passes_checks = True
+            print('Requesting user does not have any conversations')
+
+    # if the random user passes the checks, generate a new conversation between the requesting and random user
+    if random_user_passes_checks:
+        print('random user passed check')
+        # print(type(Conversation.objects.last().id))
+        Conversation.objects.create(first_member_id=1,
+                                    second_member_id=random_user.id,
+                                    first_member_reveal=0,
+                                    second_member_reveal=0,
+                                    title= f'Conversation {Conversation.objects.last().id + 1}'
+                                    )
+    return Response('New chat created')

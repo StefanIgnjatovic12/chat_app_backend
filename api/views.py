@@ -78,20 +78,29 @@ def get_partner_and_last_message_from_user(request, pk):
         for member in conversation.members.all():
             # if the member of the conversation isnt the active user its the convo partner
             if member != user:
+                profile = Profile.objects.get(user_id=member.id)
                 last_message = conversation.messages.last().message
                 message_created_on = conversation.messages.last().created_on
-                avatar = str(Profile.objects.get(user_id=member.id).avatar)
+                avatar = str(profile.avatar)
+                real_avatar = str(profile.real_avatar)
+                # avatar = str(Profile.objects.get(user_id=member.id).avatar)
+                # real_avatar = str(Profile.objects.get(user_id=member.id).real_avatar)
                 # encode avatar img file as base64 to be rendered on front end
                 with open(avatar, "rb") as image_file:
-                    encoded_string = base64.b64encode(image_file.read())
+                    encoded_avatar = base64.b64encode(image_file.read())
+
+                with open(real_avatar, "rb") as image_file:
+                    encoded_real_avatar = base64.b64encode(image_file.read())
+                print(f'This is the real name {profile.real_name}')
                 conversation_list.append(
                     {
                         'conv_id': conversation.id,
                         'conv_partner': member.username,
+                        'conv_partner_real_name': profile.real_name,
                         'last_message': last_message,
-                        # 'created_on': message_created_on.strftime("%d.%m.%Y %H:%M"),
                         'created_on': message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
-                        'avatar': encoded_string,
+                        'avatar': encoded_avatar,
+                        'real_avatar': real_avatar
 
                     }
 
@@ -205,6 +214,10 @@ def reveal_profile(request):
         convo.second_member_reveal = True
         convo.second_member_id = user.id
         convo.save()
+    elif convo.first_member_reveal == False and convo.second_member_reveal == True:
+        convo.first_member_reveal = True
+        convo.first_member_id = user.id
+        convo.save()
     else:
         return Response('Both profiles already revealed')
     return Response({
@@ -283,6 +296,8 @@ def check_reveal_status(request, pk):
     # the match will only occur if the user has revealed their profile within the convo in question
     convo = Conversation.objects.get(id=pk)
     user = request.user
+    print(f'This is the user: {user}')
+    print(f'This is their ID: {user.id}')
     if convo.first_member_id is not None \
             and user.id == int(convo.first_member_id) \
             and convo.first_member_reveal == True:

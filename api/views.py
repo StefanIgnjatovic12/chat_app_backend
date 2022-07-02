@@ -372,18 +372,13 @@ def delete_convo(request, pk):
 
 @api_view(['GET'])
 def create_new_chat(request):
-    # list of all users
-    users = list(User.objects.all())
-
     requesting_user = request.user
-    print(requesting_user)
-
+    # list of all users excluding the requesting user (so the requesting user isn't matched to him/herself)
+    all_users = list(User.objects.exclude(id=requesting_user.id))
     # randomly select conversation partner
-    # FIGURE OUT WAY TO MAKE SURE IT'S NOT THE SAME AS THE REQUESTING USER
-    random_user = random.choice(users)
+    random_user = random.choice(all_users)
     # check if requesting user already has a convo with the random user
     random_user_passes_checks = False
-
     # While loop so that if checks are failed, a new random user is generated and the whole thing repeats
     while random_user_passes_checks is False:
         # Check if conversation where requesting user is the first member exists
@@ -392,7 +387,7 @@ def create_new_chat(request):
             list_of_convos_to_check = Conversation.objects.filter(first_member_id=requesting_user.id)
             # loop through list of convos and check if randomly selected user is the second member of any of them
             for convo in list_of_convos_to_check:
-                if convo.second_member_id == random_user.id:
+                if convo.second_member_id == '9':
                     print('The two users already have a convo, first check')
                 else:
                     # if the random user isn't a member of the convo, stop the while loop
@@ -405,7 +400,7 @@ def create_new_chat(request):
             # if it exists, get a list of those convos
             for convo in list_of_convos_to_check:
 
-                if convo.first_member_id == random_user.id:
+                if convo.first_member_id == '9':
                     print('The two users already have a convo, first check')
                 else:
                     # if the random user isn't a member of the convo, stop the while loop
@@ -421,10 +416,12 @@ def create_new_chat(request):
     if random_user_passes_checks:
         print('random user passed check')
         # print(type(Conversation.objects.last().id))
-        Conversation.objects.create(first_member_id=1,
+        convo = Conversation.objects.create(first_member_id=requesting_user.id,
                                     second_member_id=random_user.id,
                                     first_member_reveal=0,
                                     second_member_reveal=0,
                                     title= f'Conversation {Conversation.objects.last().id + 1}'
                                     )
+        members = [requesting_user, random_user]
+        convo.members.set(members)
     return Response('New chat created')

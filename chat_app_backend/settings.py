@@ -129,7 +129,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 # MEDIA_ROOT = 'C:/Users/Stefan/Desktop/python/chat_app_backend/avatars/'
-MEDIA_ROOT = 'D:/Cloned Chat App/chat_app_backend/'
+MEDIA_ROOT = 'C:/Users/Stefan/Desktop/python/chat_app_backend/'
 MEDIA_URL = ('avatars/')
 
 # Default primary key field type

@@ -59,9 +59,14 @@ def get_conversations_from_user(request, pk):
     # Sort data based on messages belonging to each convo; convo with newest message is first in list etc
     sorted_data = sorted(
         serialized_convos.data,
-        key=lambda x:
-        max(datetime.datetime.strptime(msg['created_on'], '%d.%m.%Y %H:%M:%S') for msg in x['messages']),
-        reverse=True)
+        key=lambda x: max(
+            datetime.datetime.strptime(msg["created_on"], "%d.%m.%Y %H:%M:%S")
+            for msg in x.get("messages")
+        )
+        # if a convo doesnt have messages yet
+        if "messages" in x
+        else datetime.datetime(1970, 1, 1),
+        reverse=True, )
     return Response(sorted_data)
 
 
@@ -80,8 +85,7 @@ def get_partner_and_last_message_from_user(request, pk):
             # if the member of the conversation isnt the active user its the convo partner
             if member != user:
                 profile = Profile.objects.get(user_id=member.id)
-                last_message = conversation.messages.last().message
-                message_created_on = conversation.messages.last().created_on
+
                 avatar = str(profile.avatar)
                 real_avatar = str(profile.real_avatar)
                 # avatar = str(Profile.objects.get(user_id=member.id).avatar)
@@ -92,14 +96,25 @@ def get_partner_and_last_message_from_user(request, pk):
 
                 with open(real_avatar, "rb") as image_file:
                     encoded_real_avatar = base64.b64encode(image_file.read())
-                print(f'This is the real name {profile.real_name}')
+
+                # for case when new chat was created but there are no messages exchanged yet
+                if conversation.messages.last() is not None:
+                    last_message = conversation.messages.last().message
+                    message_created_on = conversation.messages.last().created_on
+                else:
+                    # if there is no actual message to use, set the created_on time to 2050 so that the convo is put
+                    # at the bottom of the list when it's sorted
+                    last_message = ''
+                    message_created_on = datetime.datetime.strptime('03.07.2010 18:04:54', '%d.%m.%Y %H:%M:%S')
                 conversation_list.append(
                     {
                         'conv_id': conversation.id,
                         'conv_partner': member.username,
                         'conv_partner_real_name': profile.real_name,
                         'last_message': last_message,
-                        'created_on': message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
+                        # 'created_on': message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
+                        'created_on': message_created_on if message_created_on == '' else
+                        message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
                         'avatar': encoded_avatar,
                         'real_avatar': real_avatar
 
@@ -140,7 +155,7 @@ def get_messages_with_user(request, pk, name):
                         #     'avatar': encoded_string,
                         # },
                         'messages': [],
-                        'last_message': convo.messages.last().message
+                        'last_message': convo.messages.last().message if convo.messages.last() is not None else ''
                     }
                 )
                 # serialize messages belonging to matching convo
@@ -373,55 +388,47 @@ def delete_convo(request, pk):
 @api_view(['GET'])
 def create_new_chat(request):
     requesting_user = request.user
-    # list of all users excluding the requesting user (so the requesting user isn't matched to him/herself)
+    # # list of all users excluding the requesting user (so the requesting user isn't matched to him/herself)
     all_users = list(User.objects.exclude(id=requesting_user.id))
+    def generate_random_user():
+        generated_user = random.choice(all_users)
+        return generated_user
     # randomly select conversation partner
-    random_user = random.choice(all_users)
-    # check if requesting user already has a convo with the random user
+    random_user = generate_random_user()
+    # use for while loop
     random_user_passes_checks = False
-    # While loop so that if checks are failed, a new random user is generated and the whole thing repeats
+    all_convos = requesting_user.conversation.all()
+    # list containing all existing conversation partners of requesting user
+    conversation_partner_list = []
+    # loop through all of requesting users convos
+    for convo in all_convos:
+        # loop through all the members of those convos and append them to the list
+        for member in convo.members.all().exclude(id=requesting_user.id):
+            conversation_partner_list.append(member.username)
+    # check if the randomly generated user is already in the list of requesting users convo partners
     while random_user_passes_checks is False:
-        # Check if conversation where requesting user is the first member exists
-        if Conversation.objects.filter(first_member_id=requesting_user.id).exists():
-            # if it exists, get a list of those convos
-            list_of_convos_to_check = Conversation.objects.filter(first_member_id=requesting_user.id)
-            # loop through list of convos and check if randomly selected user is the second member of any of them
-            for convo in list_of_convos_to_check:
-                if convo.second_member_id == '9':
-                    print('The two users already have a convo, first check')
-                else:
-                    # if the random user isn't a member of the convo, stop the while loop
-                    random_user_passes_checks = True
-                    print('while loop ended, first check')
-
-        # Check if conversation where requesting user is the second member exists
-        elif Conversation.objects.filter(second_member_id=requesting_user.id).exists():
-            list_of_convos_to_check = Conversation.objects.filter(second_member_id=requesting_user.id)
-            # if it exists, get a list of those convos
-            for convo in list_of_convos_to_check:
-
-                if convo.first_member_id == '9':
-                    print('The two users already have a convo, first check')
-                else:
-                    # if the random user isn't a member of the convo, stop the while loop
-                    random_user_passes_checks = True
-                    print('while loop ended, second check')
-
+        if random_user.username in conversation_partner_list:
+            print('User is in list')
+            print(random_user)
+            print(conversation_partner_list)
+            random_user = generate_random_user()
+            # check if requesting user already has a convo open with all available users; if so, break
+            # to avoid infinite loop
+            if len(conversation_partner_list) == User.objects.all().count() - 1:
+                break
+        # if not in list, generate new convo
         else:
-            # if there are no matching convos, the check is automatically passed
+            print('User not in list')
+            print(random_user)
+            print(conversation_partner_list)
+            convo = Conversation.objects.create(first_member_id=requesting_user.id,
+                                                    second_member_id=random_user.id,
+                                                    first_member_reveal=0,
+                                                    second_member_reveal=0,
+                                                    title=f'Conversation {Conversation.objects.last().id + 1}'
+                                                    )
+            members = [requesting_user, random_user]
+            convo.members.set(members)
+            # break out of while loop after convo is created
             random_user_passes_checks = True
-            print('Requesting user does not have any conversations')
-
-    # if the random user passes the checks, generate a new conversation between the requesting and random user
-    if random_user_passes_checks:
-        print('random user passed check')
-        # print(type(Conversation.objects.last().id))
-        convo = Conversation.objects.create(first_member_id=requesting_user.id,
-                                    second_member_id=random_user.id,
-                                    first_member_reveal=0,
-                                    second_member_reveal=0,
-                                    title= f'Conversation {Conversation.objects.last().id + 1}'
-                                    )
-        members = [requesting_user, random_user]
-        convo.members.set(members)
     return Response('New chat created')

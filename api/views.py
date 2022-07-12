@@ -116,7 +116,8 @@ def get_partner_and_last_message_from_user(request, pk):
                         'created_on': message_created_on if message_created_on == '' else
                         message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
                         'avatar': encoded_avatar,
-                        'real_avatar': real_avatar
+                        # 'real_avatar': real_avatar
+                        'real_avatar': encoded_real_avatar
 
                     }
 
@@ -145,15 +146,17 @@ def get_messages_with_user(request, pk, name):
         for member in convo.members.all():
             # match conversation partner to the name parameter passed
             if member.username == name:
+                profile = Profile.objects.get(user_id=member.id)
+                real_avatar = str(profile.real_avatar)
+                with open(real_avatar, "rb") as image_file:
+                    encoded_real_avatar = base64.b64encode(image_file.read())
                 sorted_data.append(
                     {
                         'convo_id': convo.id,
                         'conv_partner': name,
+                        'conv_partner_real_name': profile.real_name,
                         'avatar': encoded_string,
-                        # 'convo_partner': {
-                        #     'name': name,
-                        #     'avatar': encoded_string,
-                        # },
+                        'real_avatar': encoded_real_avatar,
                         'messages': [],
                         'last_message': convo.messages.last().message if convo.messages.last() is not None else ''
                     }
@@ -283,7 +286,7 @@ def get_revealed_profiles_from_convo(request, pk):
         for member in convo.members.all():
             # get the conversation partner to return their data
             if request.user != member:
-                print(f'This is the member {member}')
+                # print(f'This is the member {member}')
                 profile = Profile.objects.get(user_id=member.id)
                 with open(str(profile.real_avatar), "rb") as image_file_2:
                     encoded_real_avatar = base64.b64encode(image_file_2.read())
@@ -312,34 +315,169 @@ def check_reveal_status(request, pk):
     # the match will only occur if the user has revealed their profile within the convo in question
     convo = Conversation.objects.get(id=pk)
     user = request.user
-    print(f'This is the user: {user}')
-    print(f'This is their ID: {user.id}')
-    if convo.first_member_id is not None \
-            and user.id == int(convo.first_member_id) \
-            and convo.first_member_reveal == True:
+    # Both members have revealed
+    if (convo.second_member_id is not None
+            and convo.first_member_id is not None
+            and convo.first_member_reveal == True
+            and convo.second_member_reveal == True):
+        print('Case 1')
         return Response({
             'user_id': user.id,
             'convo_id': convo.id,
-            'revealed': True
+            'revealed': True,
+            'partner_revealed': True
         })
-        # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
+    # requesting user is first member, first member has revealed and partner hasnt
+    elif convo.first_member_id is not None \
+            and user.id == int(convo.first_member_id) \
+            and convo.first_member_reveal == True \
+            and convo.second_member_reveal == False:
+        print('Case 2')
+
+        return Response({
+            'user_id': user.id,
+            'convo_id': convo.id,
+            'revealed': True,
+            'partner_revealed': False
+        })
+    # requesting user is first member, first member has not revealed and second member has
+    elif convo.first_member_id is not None \
+            and user.id == int(convo.first_member_id) \
+            and convo.first_member_reveal == False \
+            and convo.second_member_reveal == True:
+        print('Case 3')
+
+        return Response({
+            'user_id': user.id,
+            'convo_id': convo.id,
+            'revealed': False,
+            'partner_revealed': True
+        })
+
+    # requesting user is second, second member has revealed and partner hasnt
     elif (convo.second_member_id is not None
           and user.id == int(convo.second_member_id)) \
-            and convo.second_member_reveal == True:
-        # return Response(f'Member with id {user.id} has revealed their profile in convo with id {convo.id}')
+            and convo.second_member_reveal == True \
+            and convo.first_member_reveal == False:
+        print('Case 4')
+
         return Response({
             'user_id': user.id,
             'convo_id': convo.id,
-            'revealed': True
+            'revealed': True,
+            'partner_revealed': False
+        })
+    # requesting user is second, second member has not revealed and partner has
+    elif (convo.second_member_id is not None
+          and user.id == int(convo.second_member_id)) \
+            and convo.second_member_reveal == False \
+            and convo.first_member_reveal == True:
+        print('Case 5')
+
+        return Response({
+            'user_id': user.id,
+            'convo_id': convo.id,
+            'revealed': False,
+            'partner_revealed': True
         })
     else:
+        # IF NEITHER HAVE REVEALED
+        print('Case 6')
+
         return Response({
             'user_id': user.id,
             'convo_id': convo.id,
-            'revealed': False
+            'revealed': False,
+            'partner_revealed': False
         })
 
+@api_view(['GET'])
+def new_check_reveal_test(request,):
+    # takes convo id and checks if the user.id of the user making the request matches one of the member_ids
+    # the match will only occur if the user has revealed their profile within the convo in question
 
+    user = request.user
+    convos = user.conversation.all()
+    lst = []
+    for convo in convos:
+    # Both members have revealed
+        if (convo.second_member_id is not None
+                and convo.first_member_id is not None
+                and convo.first_member_reveal == True
+                and convo.second_member_reveal == True):
+            print('Case 1')
+            lst.append({
+                'user_id': user.id,
+                'convo_id': convo.id,
+                'revealed': True,
+                'partner_revealed': True
+            })
+
+        # requesting user is first member, first member has revealed and partner hasnt
+        elif convo.first_member_id is not None \
+                and user.id == int(convo.first_member_id) \
+                and convo.first_member_reveal == True \
+                and convo.second_member_reveal == False:
+            print('Case 2')
+
+            lst.append({
+                'user_id': user.id,
+                'convo_id': convo.id,
+                'revealed': True,
+                'partner_revealed': False
+            })
+        # requesting user is first member, first member has not revealed and second member has
+        elif convo.first_member_id is not None \
+                and user.id == int(convo.first_member_id) \
+                and convo.first_member_reveal == False \
+                and convo.second_member_reveal == True:
+            print('Case 3')
+
+            lst.append({
+                'user_id': user.id,
+                'convo_id': convo.id,
+                'revealed': False,
+                'partner_revealed': True
+            })
+
+
+        # requesting user is second, second member has revealed and partner hasnt
+        elif (convo.second_member_id is not None
+              and user.id == int(convo.second_member_id)) \
+                and convo.second_member_reveal == True \
+                and convo.first_member_reveal == False:
+            print('Case 4')
+
+            lst.append({
+                'user_id': user.id,
+                'convo_id': convo.id,
+                'revealed': True,
+                'partner_revealed': False
+            })
+
+        # requesting user is second, second member has not revealed and partner has
+        elif (convo.second_member_id is not None
+              and user.id == int(convo.second_member_id)) \
+                and convo.second_member_reveal == False \
+                and convo.first_member_reveal == True:
+            print('Case 5')
+
+            lst.append({
+                'user_id': user.id,
+                'convo_id': convo.id,
+                'revealed': False,
+                'partner_revealed': True
+            })
+        else:
+            # IF NEITHER HAVE REVEALED
+            print('Case 6')
+            lst.append({
+                'user_id': user.id,
+                'convo_id': convo.id,
+                'revealed': False,
+                'partner_revealed': False
+            })
+    return Response(lst)
 @api_view(['PATCH'])
 def edit_profile(request):
     user = request.user
@@ -390,13 +528,14 @@ def create_new_chat(request):
     requesting_user = request.user
     # # list of all users excluding the requesting user (so the requesting user isn't matched to him/herself)
     all_users = list(User.objects.exclude(id=requesting_user.id))
+
     def generate_random_user():
         generated_user = random.choice(all_users)
         return generated_user
+
     # randomly select conversation partner
     random_user = generate_random_user()
-    # use for while loop
-    random_user_passes_checks = False
+
     all_convos = requesting_user.conversation.all()
     # list containing all existing conversation partners of requesting user
     conversation_partner_list = []
@@ -406,14 +545,16 @@ def create_new_chat(request):
         for member in convo.members.all().exclude(id=requesting_user.id):
             conversation_partner_list.append(member.username)
     # check if the randomly generated user is already in the list of requesting users convo partners
+    random_user_passes_checks = False
     while random_user_passes_checks is False:
         if random_user.username in conversation_partner_list:
             print('User is in list')
             print(random_user)
             print(conversation_partner_list)
+            # convo with previous randomly generated user exists, generate a new random user
             random_user = generate_random_user()
-            # check if requesting user already has a convo open with all available users; if so, break
-            # to avoid infinite loop
+            # check if requesting user already has a convo open with all available users; if so, break to avoid
+            # infinite loop
             if len(conversation_partner_list) == User.objects.all().count() - 1:
                 break
         # if not in list, generate new convo
@@ -422,13 +563,15 @@ def create_new_chat(request):
             print(random_user)
             print(conversation_partner_list)
             convo = Conversation.objects.create(first_member_id=requesting_user.id,
-                                                    second_member_id=random_user.id,
-                                                    first_member_reveal=0,
-                                                    second_member_reveal=0,
-                                                    title=f'Conversation {Conversation.objects.last().id + 1}'
-                                                    )
+                                                second_member_id=random_user.id,
+                                                first_member_reveal=0,
+                                                second_member_reveal=0,
+                                                title=f'Conversation {Conversation.objects.last().id + 1}'
+                                                )
             members = [requesting_user, random_user]
             convo.members.set(members)
             # break out of while loop after convo is created
             random_user_passes_checks = True
     return Response('New chat created')
+
+

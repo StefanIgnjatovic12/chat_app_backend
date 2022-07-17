@@ -49,7 +49,7 @@ class Profile(models.Model):
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
     real_name = models.CharField(max_length=50, null=True, blank=True)
     real_avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-
+    is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username

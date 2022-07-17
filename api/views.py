@@ -5,7 +5,10 @@ from api.models import Conversation, Message, Profile
 from .serializers import ConversationSerializer, MessageSerializer, ProfileSerializer
 import base64
 import datetime
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.dispatch import receiver
 import random
+
 
 
 @api_view(['GET'])
@@ -36,6 +39,7 @@ def get_conversations_from_user(request, pk):
     # loop through serialized conversations
     for convo in serialized_convos.data:
         # get id of each conversation
+
         convo_id = convo['id']
         # get messages that belong to the above convo
         messages = Message.objects.filter(conversation_id=int(convo_id))
@@ -77,6 +81,7 @@ def get_partner_and_last_message_from_user(request, pk):
     user = User.objects.get(id=pk)
     # conversations belonging to active user
     conversations = user.conversation.all()
+    # print(f'length of convo queryset: {len(conversations)}')
     conversation_list = []
     # loop through their conversation objects
     for conversation in conversations:
@@ -84,6 +89,7 @@ def get_partner_and_last_message_from_user(request, pk):
         for member in conversation.members.all():
             # if the member of the conversation isnt the active user its the convo partner
             if member != user:
+                print(member.id)
                 profile = Profile.objects.get(user_id=member.id)
 
                 avatar = str(profile.avatar)
@@ -117,7 +123,8 @@ def get_partner_and_last_message_from_user(request, pk):
                         message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
                         'avatar': encoded_avatar,
                         # 'real_avatar': real_avatar
-                        'real_avatar': encoded_real_avatar
+                        'real_avatar': encoded_real_avatar,
+                        'is_online': profile.is_online
 
                     }
 
@@ -197,6 +204,7 @@ def create_new_message(request):
 @api_view(['GET'])
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
+    user = User.objects.get(id=pk)
     with open(str(profile.avatar), "rb") as image_file:
         encoded_avatar = base64.b64encode(image_file.read())
     with open(str(profile.real_avatar), "rb") as image_file_2:
@@ -208,6 +216,7 @@ def get_user_profile(request, pk):
         'description': profile.description,
         'interests': profile.interests,
         'reason': profile.reason,
+        'username': user.username,
         'real_name': profile.real_name,
         'avatar': encoded_avatar,
         'real_avatar': encoded_real_avatar,
@@ -315,6 +324,7 @@ def check_reveal_status(request, pk):
     # the match will only occur if the user has revealed their profile within the convo in question
     convo = Conversation.objects.get(id=pk)
     user = request.user
+
     # Both members have revealed
     if (convo.second_member_id is not None
             and convo.first_member_id is not None
@@ -398,6 +408,7 @@ def new_check_reveal_test(request,):
 
     user = request.user
     convos = user.conversation.all()
+
     lst = []
     for convo in convos:
     # Both members have revealed
@@ -574,4 +585,13 @@ def create_new_chat(request):
             random_user_passes_checks = True
     return Response('New chat created')
 
+# check if user is online
+@receiver(user_logged_in)
+def got_online(sender, user, request, **kwargs):
+    user.profile.is_online = True
+    user.profile.save()
 
+@receiver(user_logged_out)
+def got_offline(sender, user, request, **kwargs):
+    user.profile.is_online = False
+    user.profile.save()

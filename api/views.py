@@ -118,11 +118,9 @@ def get_partner_and_last_message_from_user(request, pk):
                         'conv_partner': member.username,
                         'conv_partner_real_name': profile.real_name,
                         'last_message': last_message,
-                        # 'created_on': message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
                         'created_on': message_created_on if message_created_on == '' else
                         message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
                         'avatar': encoded_avatar,
-                        # 'real_avatar': real_avatar
                         'real_avatar': encoded_real_avatar,
                         'is_online': profile.is_online
 
@@ -493,14 +491,13 @@ def new_check_reveal_test(request,):
 def edit_profile(request):
     user = request.user
     data = request.data
-
     # create new dict containing only filled out fields of the edit form
     filtered_data = {}
     for (key, value) in data.items():
         if value != '' and value != None:
             filtered_data[key] = value
 
-    print(filtered_data)
+
     # for when user is editing their existing profile
     if Profile.objects.filter(user=user).exists():
         # if user.profile.exists():

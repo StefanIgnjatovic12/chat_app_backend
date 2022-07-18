@@ -24,6 +24,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     real_avatar = Base64ImageField(required=False)
+    avatar = Base64ImageField(required=False)
 
     class Meta:
         model = Profile

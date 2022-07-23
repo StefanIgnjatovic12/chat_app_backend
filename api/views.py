@@ -8,7 +8,7 @@ import datetime
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 import random
-
+from dj_rest_auth.views import LoginView
 
 
 @api_view(['GET'])
@@ -76,6 +76,7 @@ def get_conversations_from_user(request, pk):
 
 @api_view(['GET'])
 def get_partner_and_last_message_from_user(request, pk):
+
     # Get conversation partner and last message from conversation
     # active user sending request
     user = User.objects.get(id=pk)
@@ -89,19 +90,33 @@ def get_partner_and_last_message_from_user(request, pk):
         for member in conversation.members.all():
             # if the member of the conversation isnt the active user its the convo partner
             if member != user:
-                print(member.id)
                 profile = Profile.objects.get(user_id=member.id)
+                if not profile.avatar:
+                    with open('avatars/test.png', "rb") as image_file:
+                        encoded_avatar = base64.b64encode(image_file.read())
 
-                avatar = str(profile.avatar)
-                real_avatar = str(profile.real_avatar)
-                # avatar = str(Profile.objects.get(user_id=member.id).avatar)
-                # real_avatar = str(Profile.objects.get(user_id=member.id).real_avatar)
+                    # avatar = str(Profile.objects.get(user_id=1).avatar)
+                else:
+                    with open(str(profile.avatar), "rb") as image_file:
+                        encoded_avatar = base64.b64encode(image_file.read())
+
+                    # avatar = str(profile.avatar)
+
+                if not profile.real_avatar:
+                    with open('avatars/test.png', "rb") as image_file:
+                        encoded_real_avatar = base64.b64encode(image_file.read())
+                    # real_avatar = str(Profile.objects.get(user_id=1).real_avatar)
+                else:
+                    with open(str(profile.real_avatar), "rb") as image_file:
+                        encoded_real_avatar = base64.b64encode(image_file.read())
+                    # real_avatar = str(profile.real_avatar)
+
                 # encode avatar img file as base64 to be rendered on front end
-                with open(avatar, "rb") as image_file:
-                    encoded_avatar = base64.b64encode(image_file.read())
-
-                with open(real_avatar, "rb") as image_file:
-                    encoded_real_avatar = base64.b64encode(image_file.read())
+                # with open(avatar, "rb") as image_file:
+                #     encoded_avatar = base64.b64encode(image_file.read())
+                #
+                # with open(real_avatar, "rb") as image_file:
+                #     encoded_real_avatar = base64.b64encode(image_file.read())
 
                 # for case when new chat was created but there are no messages exchanged yet
                 if conversation.messages.last() is not None:
@@ -135,15 +150,17 @@ def get_partner_and_last_message_from_user(request, pk):
 
 @api_view(['GET'])
 def get_messages_with_user(request, pk, name):
-    # currently active user which is sending the request
     active_user = User.objects.get(id=pk)
     # all convos belonging to that user
     conversations = active_user.conversation.all()
     conv_partner = User.objects.get(username=name)
-    convo_partner_avatar = str(Profile.objects.get(user_id=conv_partner.id).avatar)
-    # encode avatar img file as base64 to be rendered on front end
-    with open(convo_partner_avatar, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read())
+    # if the user hasnt set their avatar or real avatar, use a pre-made one
+    if not Profile.objects.get(user_id=conv_partner.id).avatar:
+        with open('avatars/test.png', "rb") as image_file:
+            encoded_avatar = base64.b64encode(image_file.read())
+    else:
+        with open(str(Profile.objects.get(user_id=conv_partner.id).avatar), "rb") as image_file:
+            encoded_avatar = base64.b64encode(image_file.read())
     sorted_data = []
     # loop through all their conversation objects
     for convo in conversations:
@@ -152,7 +169,14 @@ def get_messages_with_user(request, pk, name):
             # match conversation partner to the name parameter passed
             if member.username == name:
                 profile = Profile.objects.get(user_id=member.id)
-                real_avatar = str(profile.real_avatar)
+
+                if not profile.real_avatar:
+                    with open('avatars/test.png', "rb") as test:
+                        encoded_kurac = base64.b64encode(test.read())
+                        print(encoded_kurac)
+                    real_avatar = str(Profile.objects.get(user_id=1).avatar)
+                else:
+                    real_avatar = str(profile.real_avatar)
                 with open(real_avatar, "rb") as image_file:
                     encoded_real_avatar = base64.b64encode(image_file.read())
                 sorted_data.append(
@@ -160,7 +184,7 @@ def get_messages_with_user(request, pk, name):
                         'convo_id': convo.id,
                         'conv_partner': name,
                         'conv_partner_real_name': profile.real_name,
-                        'avatar': encoded_string,
+                        'avatar': encoded_avatar,
                         'real_avatar': encoded_real_avatar,
                         'messages': [],
                         'last_message': convo.messages.last().message if convo.messages.last() is not None else ''
@@ -185,7 +209,6 @@ def create_new_message(request):
     convo_id = data['convo_id']
     userID = data['created_by']
     user = User.objects.get(id=userID)
-    print(convo_id)
     conversation = Conversation.objects.get(id=convo_id)
     # message_content = request.data['message_content']
 
@@ -259,17 +282,13 @@ def hide_profile(request):
     user = request.user
     # get conversation in question
     convo = Conversation.objects.get(id=data['conversation'])
-    print(f'requesting user: {user}, id: {user.id}')
-    print(f'first member reveal: {convo.first_member_reveal}, second: {convo.second_member_reveal}')
-    print(f'first member ID {convo.first_member_id}, second: {convo.second_member_id}')
-    print(f'type of user id: {type(user.id)}, of member: {type(convo.first_member_id)}')
     # if neither conversation member has revealed, do it for the first member
     if convo.first_member_reveal == True and int(convo.first_member_id) == user.id:
-        print('first scenario match')
+        # print('first scenario match')
         convo.first_member_reveal = False
         convo.save()
     elif convo.second_member_reveal == True and int(convo.second_member_id) == user.id:
-        print('second scenario match')
+        # print('second scenario match')
         convo.second_member_reveal = False
         convo.save()
     else:
@@ -295,8 +314,13 @@ def get_revealed_profiles_from_convo(request, pk):
             if request.user != member:
                 # print(f'This is the member {member}')
                 profile = Profile.objects.get(user_id=member.id)
-                with open(str(profile.real_avatar), "rb") as image_file_2:
-                    encoded_real_avatar = base64.b64encode(image_file_2.read())
+                # if not profile.avatar:
+                if not profile.real_avatar:
+                    with open('avatars/test.png', "rb") as image_file:
+                        encoded_real_avatar = base64.b64encode(image_file.read())
+                else:
+                    with open(str(profile.real_avatar), "rb") as image_file_2:
+                        encoded_real_avatar = base64.b64encode(image_file_2.read())
                 return Response([{
                     'username': member.username,
                     'age': profile.age,
@@ -328,7 +352,7 @@ def check_reveal_status(request, pk):
             and convo.first_member_id is not None
             and convo.first_member_reveal == True
             and convo.second_member_reveal == True):
-        print('Case 1')
+        # print('Case 1')
         return Response({
             'user_id': user.id,
             'convo_id': convo.id,
@@ -340,7 +364,7 @@ def check_reveal_status(request, pk):
             and user.id == int(convo.first_member_id) \
             and convo.first_member_reveal == True \
             and convo.second_member_reveal == False:
-        print('Case 2')
+        # print('Case 2')
 
         return Response({
             'user_id': user.id,
@@ -353,7 +377,7 @@ def check_reveal_status(request, pk):
             and user.id == int(convo.first_member_id) \
             and convo.first_member_reveal == False \
             and convo.second_member_reveal == True:
-        print('Case 3')
+        # print('Case 3')
 
         return Response({
             'user_id': user.id,
@@ -367,7 +391,7 @@ def check_reveal_status(request, pk):
           and user.id == int(convo.second_member_id)) \
             and convo.second_member_reveal == True \
             and convo.first_member_reveal == False:
-        print('Case 4')
+        # print('Case 4')
 
         return Response({
             'user_id': user.id,
@@ -380,7 +404,7 @@ def check_reveal_status(request, pk):
           and user.id == int(convo.second_member_id)) \
             and convo.second_member_reveal == False \
             and convo.first_member_reveal == True:
-        print('Case 5')
+        # print('Case 5')
 
         return Response({
             'user_id': user.id,
@@ -390,7 +414,7 @@ def check_reveal_status(request, pk):
         })
     else:
         # IF NEITHER HAVE REVEALED
-        print('Case 6')
+        # print('Case 6')
 
         return Response({
             'user_id': user.id,
@@ -414,7 +438,7 @@ def new_check_reveal_test(request,):
                 and convo.first_member_id is not None
                 and convo.first_member_reveal == True
                 and convo.second_member_reveal == True):
-            print('Case 1')
+            # print('Case 1')
             lst.append({
                 'user_id': user.id,
                 'convo_id': convo.id,
@@ -427,7 +451,7 @@ def new_check_reveal_test(request,):
                 and user.id == int(convo.first_member_id) \
                 and convo.first_member_reveal == True \
                 and convo.second_member_reveal == False:
-            print('Case 2')
+            # print('Case 2')
 
             lst.append({
                 'user_id': user.id,
@@ -440,7 +464,7 @@ def new_check_reveal_test(request,):
                 and user.id == int(convo.first_member_id) \
                 and convo.first_member_reveal == False \
                 and convo.second_member_reveal == True:
-            print('Case 3')
+            # print('Case 3')
 
             lst.append({
                 'user_id': user.id,
@@ -455,7 +479,7 @@ def new_check_reveal_test(request,):
               and user.id == int(convo.second_member_id)) \
                 and convo.second_member_reveal == True \
                 and convo.first_member_reveal == False:
-            print('Case 4')
+            # print('Case 4')
 
             lst.append({
                 'user_id': user.id,
@@ -469,7 +493,7 @@ def new_check_reveal_test(request,):
               and user.id == int(convo.second_member_id)) \
                 and convo.second_member_reveal == False \
                 and convo.first_member_reveal == True:
-            print('Case 5')
+            # print('Case 5')
 
             lst.append({
                 'user_id': user.id,
@@ -479,7 +503,7 @@ def new_check_reveal_test(request,):
             })
         else:
             # IF NEITHER HAVE REVEALED
-            print('Case 6')
+            # print('Case 6')
             lst.append({
                 'user_id': user.id,
                 'convo_id': convo.id,
@@ -501,13 +525,13 @@ def edit_profile(request):
     # for when user is editing their existing profile
     if Profile.objects.filter(user=user).exists():
         # if user.profile.exists():
-        print('profile exists')
+        # print('profile exists')
         profile = user.profile
     # for when user has just signed up and is adding profile details for the first time
     else:
-        print('profile doesnt exist, creating profile')
+        # print('profile doesnt exist, creating profile')
         profile = Profile.objects.create(user=user)
-        print(profile)
+        # print(profile)
 
     serializer = ProfileSerializer(instance=profile, data=filtered_data, partial=True)
     if serializer.is_valid(raise_exception=True):
@@ -556,9 +580,9 @@ def create_new_chat(request):
     random_user_passes_checks = False
     while random_user_passes_checks is False:
         if random_user.username in conversation_partner_list:
-            print('User is in list')
-            print(random_user)
-            print(conversation_partner_list)
+            # print('User is in list')
+            # print(random_user)
+            # print(conversation_partner_list)
             # convo with previous randomly generated user exists, generate a new random user
             random_user = generate_random_user()
             # check if requesting user already has a convo open with all available users; if so, break to avoid
@@ -567,9 +591,9 @@ def create_new_chat(request):
                 break
         # if not in list, generate new convo
         else:
-            print('User not in list')
-            print(random_user)
-            print(conversation_partner_list)
+            # print('User not in list')
+            # print(random_user)
+            # print(conversation_partner_list)
             convo = Conversation.objects.create(first_member_id=requesting_user.id,
                                                 second_member_id=random_user.id,
                                                 first_member_reveal=0,
@@ -585,10 +609,29 @@ def create_new_chat(request):
 # check if user is online
 @receiver(user_logged_in)
 def got_online(sender, user, request, **kwargs):
-    user.profile.is_online = True
-    user.profile.save()
+    if Profile.objects.filter(user_id=user.id).exists():
+        user.profile.is_online = True
+        user.profile.save()
+
 
 @receiver(user_logged_out)
 def got_offline(sender, user, request, **kwargs):
-    user.profile.is_online = False
-    user.profile.save()
+    if Profile.objects.filter(user_id=user.id).exists():
+        user.profile.is_online = False
+        user.profile.save()
+
+
+
+class DemoAccountLoginView(LoginView):
+
+    def login(self, request, *args, **kwargs):
+        demo_username = 'demo_user'
+        demo_password = 'demo_pass'
+
+        LoginView.as_view()
+        return Response('Demo user logged in')
+
+
+# @api_view(['GET'])
+# def testing(request):
+#

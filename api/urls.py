@@ -24,5 +24,6 @@ urlpatterns = [
     path('delete-convo/<str:pk>', views.delete_convo),
     path('profile-check-first-signin/', views.profile_check_on_first_signin),
     path('create-new-chat/', views.create_new_chat),
-    path('reveal-status-for-all-user-convos/', views.new_check_reveal_test)
+    path('reveal-status-for-all-user-convos/', views.new_check_reveal_test),
+    # path('demo-user-sign-in/', views.demo_user_sign_in)
 ]

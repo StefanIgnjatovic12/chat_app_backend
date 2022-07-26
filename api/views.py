@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -9,7 +11,8 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 import random
 from dj_rest_auth.views import LoginView
-
+from rest_framework.test import APIRequestFactory
+import requests
 
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
@@ -622,16 +625,12 @@ def got_offline(sender, user, request, **kwargs):
 
 
 
-class DemoAccountLoginView(LoginView):
 
-    def login(self, request, *args, **kwargs):
-        demo_username = 'demo_user'
-        demo_password = 'demo_pass'
-
-        LoginView.as_view()
-        return Response('Demo user logged in')
-
-
-# @api_view(['GET'])
-# def testing(request):
-#
+@api_view(['POST'])
+def demo_account_signin(request):
+    params = {'username': 'demo_user', 'password': 'demo_password'}
+    r = requests.post('http://127.0.0.1:5000/dj-rest-auth/signin/', json=params)
+    if r.status_code == 200:
+        response_dict = json.loads(r.text)
+        return Response({'access_token': response_dict['access_token']})
+    return Response('Could not save data')

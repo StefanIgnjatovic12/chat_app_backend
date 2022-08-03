@@ -5,11 +5,8 @@ from django.conf.urls.static import static
 from dj_rest_auth.views import (
     LoginView,
     LogoutView,
-    PasswordResetView,
-    PasswordResetConfirmView,
     UserDetailsView
 )
-from dj_rest_auth.registration.views import RegisterView
 
 urlpatterns = [
                   path('admin/', admin.site.urls),

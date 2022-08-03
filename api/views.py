@@ -10,9 +10,8 @@ import datetime
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 import random
-from dj_rest_auth.views import LoginView
-from rest_framework.test import APIRequestFactory
 import requests
+
 
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
@@ -79,7 +78,6 @@ def get_conversations_from_user(request, pk):
 
 @api_view(['GET'])
 def get_partner_and_last_message_from_user(request, pk):
-
     # Get conversation partner and last message from conversation
     # active user sending request
     user = User.objects.get(id=pk)
@@ -95,7 +93,7 @@ def get_partner_and_last_message_from_user(request, pk):
             if member != user:
                 profile = Profile.objects.get(user_id=member.id)
                 if not profile.avatar:
-                    with open('avatars/test.png', "rb") as image_file:
+                    with open('avatars/default_avatar.png', "rb") as image_file:
                         encoded_avatar = base64.b64encode(image_file.read())
 
                     # avatar = str(Profile.objects.get(user_id=1).avatar)
@@ -106,7 +104,7 @@ def get_partner_and_last_message_from_user(request, pk):
                     # avatar = str(profile.avatar)
 
                 if not profile.real_avatar:
-                    with open('avatars/test.png', "rb") as image_file:
+                    with open('avatars/default_avatar.png', "rb") as image_file:
                         encoded_real_avatar = base64.b64encode(image_file.read())
                     # real_avatar = str(Profile.objects.get(user_id=1).real_avatar)
                 else:
@@ -159,7 +157,7 @@ def get_messages_with_user(request, pk, name):
     conv_partner = User.objects.get(username=name)
     # if the user hasnt set their avatar or real avatar, use a pre-made one
     if not Profile.objects.get(user_id=conv_partner.id).avatar:
-        with open('avatars/test.png', "rb") as image_file:
+        with open('avatars/default_avatar.png', "rb") as image_file:
             encoded_avatar = base64.b64encode(image_file.read())
     else:
         with open(str(Profile.objects.get(user_id=conv_partner.id).avatar), "rb") as image_file:
@@ -172,16 +170,12 @@ def get_messages_with_user(request, pk, name):
             # match conversation partner to the name parameter passed
             if member.username == name:
                 profile = Profile.objects.get(user_id=member.id)
-
                 if not profile.real_avatar:
-                    with open('avatars/test.png', "rb") as test:
-                        encoded_kurac = base64.b64encode(test.read())
-                        print(encoded_kurac)
-                    real_avatar = str(Profile.objects.get(user_id=1).avatar)
+                    with open('avatars/default_avatar.png', "rb") as image_file:
+                        encoded_real_avatar = base64.b64encode(image_file.read())
                 else:
-                    real_avatar = str(profile.real_avatar)
-                with open(real_avatar, "rb") as image_file:
-                    encoded_real_avatar = base64.b64encode(image_file.read())
+                    with open(str(profile.real_avatar), "rb") as image_file_2:
+                        encoded_real_avatar = base64.b64encode(image_file_2.read())
                 sorted_data.append(
                     {
                         'convo_id': convo.id,
@@ -319,7 +313,7 @@ def get_revealed_profiles_from_convo(request, pk):
                 profile = Profile.objects.get(user_id=member.id)
                 # if not profile.avatar:
                 if not profile.real_avatar:
-                    with open('avatars/test.png', "rb") as image_file:
+                    with open('avatars/default_avatar.png', "rb") as image_file:
                         encoded_real_avatar = base64.b64encode(image_file.read())
                 else:
                     with open(str(profile.real_avatar), "rb") as image_file_2:
@@ -426,8 +420,9 @@ def check_reveal_status(request, pk):
             'partner_revealed': False
         })
 
+
 @api_view(['GET'])
-def new_check_reveal_test(request,):
+def new_check_reveal_test(request, ):
     # takes convo id and checks if the user.id of the user making the request matches one of the member_ids
     # the match will only occur if the user has revealed their profile within the convo in question
 
@@ -436,7 +431,7 @@ def new_check_reveal_test(request,):
 
     lst = []
     for convo in convos:
-    # Both members have revealed
+        # Both members have revealed
         if (convo.second_member_id is not None
                 and convo.first_member_id is not None
                 and convo.first_member_reveal == True
@@ -514,6 +509,8 @@ def new_check_reveal_test(request,):
                 'partner_revealed': False
             })
     return Response(lst)
+
+
 @api_view(['PATCH'])
 def edit_profile(request):
     user = request.user
@@ -523,7 +520,6 @@ def edit_profile(request):
     for (key, value) in data.items():
         if value != '' and value != None:
             filtered_data[key] = value
-
 
     # for when user is editing their existing profile
     if Profile.objects.filter(user=user).exists():
@@ -570,7 +566,6 @@ def create_new_chat(request):
 
     # randomly select conversation partner
     random_user = generate_random_user()
-
     all_convos = requesting_user.conversation.all()
     # list containing all existing conversation partners of requesting user
     conversation_partner_list = []
@@ -583,9 +578,6 @@ def create_new_chat(request):
     random_user_passes_checks = False
     while random_user_passes_checks is False:
         if random_user.username in conversation_partner_list:
-            # print('User is in list')
-            # print(random_user)
-            # print(conversation_partner_list)
             # convo with previous randomly generated user exists, generate a new random user
             random_user = generate_random_user()
             # check if requesting user already has a convo open with all available users; if so, break to avoid
@@ -594,9 +586,6 @@ def create_new_chat(request):
                 break
         # if not in list, generate new convo
         else:
-            # print('User not in list')
-            # print(random_user)
-            # print(conversation_partner_list)
             convo = Conversation.objects.create(first_member_id=requesting_user.id,
                                                 second_member_id=random_user.id,
                                                 first_member_reveal=0,
@@ -608,6 +597,7 @@ def create_new_chat(request):
             # break out of while loop after convo is created
             random_user_passes_checks = True
     return Response('New chat created')
+
 
 # check if user is online
 @receiver(user_logged_in)
@@ -622,8 +612,6 @@ def got_offline(sender, user, request, **kwargs):
     if Profile.objects.filter(user_id=user.id).exists():
         user.profile.is_online = False
         user.profile.save()
-
-
 
 
 @api_view(['POST'])

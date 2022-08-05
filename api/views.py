@@ -617,7 +617,7 @@ def got_offline(sender, user, request, **kwargs):
 @api_view(['POST'])
 def demo_account_signin(request):
     params = {'username': 'demo_user', 'password': 'demo_password'}
-    r = requests.post('http://127.0.0.1:5000/dj-rest-auth/signin/', json=params)
+    r = requests.post('https://drf-react-chat-backend.herokuapp.com/dj-rest-auth/signin/', json=params)
     if r.status_code == 200:
         response_dict = json.loads(r.text)
         return Response({'access_token': response_dict['access_token']})

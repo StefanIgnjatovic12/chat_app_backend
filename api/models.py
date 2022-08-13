@@ -40,7 +40,8 @@ class Profile(models.Model):
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars')
+    # avatar = models.ImageField(upload_to='avatars')
+    avatar = models.ImageField()
     age = models.CharField(max_length=3, null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=100, null=True, blank=True)
     location = models.CharField(max_length=50, null=True, blank=True)
@@ -48,7 +49,8 @@ class Profile(models.Model):
     interests = models.CharField(max_length=300, null=True, blank=True)
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
     real_name = models.CharField(max_length=50, null=True, blank=True)
-    real_avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    # real_avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    real_avatar = models.ImageField(null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
     def __str__(self):

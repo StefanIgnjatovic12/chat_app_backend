@@ -4,7 +4,8 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('messages/<str:pk>', views.get_messages_from_conversation),
@@ -27,3 +28,9 @@ urlpatterns = [
     path('reveal-status-for-all-user-convos/', views.new_check_reveal_test),
     path('demo-account-signin/', views.demo_account_signin)
 ]
+
+if settings.LOCAL_SERVE_STATIC_FILES:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.LOCAL_SERVE_MEDIA_FILES:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

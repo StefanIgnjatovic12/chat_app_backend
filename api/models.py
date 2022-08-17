@@ -26,6 +26,11 @@ class Message(models.Model):
         return self.message
 
 
+def _profile_avatar_upload_path(instance, filename):
+    """Provides a clean upload path for user avatar images
+    """
+    file_extension = pathlib.Path(filename).suffix
+    return f'avatars/profiles/{instance.user.username}{file_extension}'
 
 class Profile(models.Model):
 
@@ -52,7 +57,7 @@ class Profile(models.Model):
     interests = models.CharField(max_length=300, null=True, blank=True)
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
     real_name = models.CharField(max_length=50, null=True, blank=True)
-    real_avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    real_avatar = models.ImageField(upload_to=_profile_avatar_upload_path, null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
     def __str__(self):

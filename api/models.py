@@ -30,7 +30,7 @@ def _profile_avatar_upload_path(instance, filename):
     """Provides a clean upload path for user avatar images
     """
     file_extension = pathlib.Path(filename).suffix
-    return f'avatars/profiles/{instance.user.username}{file_extension}'
+    return f'avatars/{instance.user.username}{file_extension}'
 
 class Profile(models.Model):
 

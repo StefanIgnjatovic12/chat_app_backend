@@ -15,11 +15,10 @@ urlpatterns = [
                   path('dj-rest-auth/signin/', LoginView.as_view()),
                   path('dj-rest-auth/logout/', LogoutView.as_view()),
                   path('dj-rest-auth/user/', UserDetailsView.as_view())
-              ]
-              # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+              ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if settings.LOCAL_SERVE_STATIC_FILES:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-if settings.LOCAL_SERVE_MEDIA_FILES:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# if settings.LOCAL_SERVE_STATIC_FILES:
+#     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+#
+# if settings.LOCAL_SERVE_MEDIA_FILES:
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

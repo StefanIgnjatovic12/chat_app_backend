@@ -29,8 +29,8 @@ urlpatterns = [
     path('demo-account-signin/', views.demo_account_signin)
 ]
 
-if settings.LOCAL_SERVE_STATIC_FILES:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-if settings.LOCAL_SERVE_MEDIA_FILES:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# if settings.LOCAL_SERVE_STATIC_FILES:
+#     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+#
+# if settings.LOCAL_SERVE_MEDIA_FILES:
+#     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

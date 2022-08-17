@@ -4,6 +4,9 @@ from django.contrib.auth.models import User
 import pathlib
 
 # Create your models here.
+from chat_app_backend.storage_backends import PublicMediaStorage
+
+
 class Conversation(models.Model):
     title = models.CharField(max_length=100, null=False, default='')
     members = models.ManyToManyField(User, related_name='conversation')
@@ -57,7 +60,8 @@ class Profile(models.Model):
     interests = models.CharField(max_length=300, null=True, blank=True)
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
     real_name = models.CharField(max_length=50, null=True, blank=True)
-    real_avatar = models.ImageField(upload_to=_profile_avatar_upload_path, null=True, blank=True)
+    real_avatar = models.ImageField(upload_to=_profile_avatar_upload_path, null=True, blank=True,
+                                    storage=PublicMediaStorage())
     is_online = models.BooleanField(default=False)
 
     def __str__(self):

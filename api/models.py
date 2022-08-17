@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 import pathlib
 
 # Create your models here.
-from chat_app_backend.storage_backends import PublicMediaStorage
+
 
 
 class Conversation(models.Model):

@@ -223,7 +223,9 @@ def create_new_message(request):
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
     user = User.objects.get(id=pk)
-    print(profile.real_avatar.url)
+    if profile.real_avatar.url:
+        print(profile.real_avatar.url)
+    else: print('nothin')
     if not profile.avatar:
         with open('avatars/default_avatar.png', "rb") as image_file:
             encoded_avatar = base64.b64encode(image_file.read())

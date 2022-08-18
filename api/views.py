@@ -224,7 +224,7 @@ def get_user_profile(request, pk):
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
-        with open(f'media/avatars/stefan.png', "rb") as image_file_2:
+        with open('media/avatars/stefan.png', "rb") as image_file_2:
         # with open(str(profile.real_avatar), "rb") as image_file_2:
             encoded_real_avatar = base64.b64encode(image_file_2.read())
 

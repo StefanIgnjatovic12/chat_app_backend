@@ -95,29 +95,17 @@ def get_partner_and_last_message_from_user(request, pk):
                 if not profile.avatar:
                     with open('avatars/default_avatar.png', "rb") as image_file:
                         encoded_avatar = base64.b64encode(image_file.read())
-
-                    # avatar = str(Profile.objects.get(user_id=1).avatar)
                 else:
                     with open(str(profile.avatar), "rb") as image_file:
                         encoded_avatar = base64.b64encode(image_file.read())
-
-                    # avatar = str(profile.avatar)
-
                 if not profile.real_avatar:
                     with open('avatars/default_avatar.png', "rb") as image_file:
                         encoded_real_avatar = base64.b64encode(image_file.read())
-                    # real_avatar = str(Profile.objects.get(user_id=1).real_avatar)
+
                 else:
                     with open(str(profile.real_avatar), "rb") as image_file:
                         encoded_real_avatar = base64.b64encode(image_file.read())
-                    # real_avatar = str(profile.real_avatar)
 
-                # encode avatar img file as base64 to be rendered on front end
-                # with open(avatar, "rb") as image_file:
-                #     encoded_avatar = base64.b64encode(image_file.read())
-                #
-                # with open(real_avatar, "rb") as image_file:
-                #     encoded_real_avatar = base64.b64encode(image_file.read())
 
                 # for case when new chat was created but there are no messages exchanged yet
                 if conversation.messages.last() is not None:
@@ -227,13 +215,13 @@ def get_user_profile(request, pk):
         print(profile.real_avatar.url)
     else: print('nothin')
     if not profile.avatar:
-        with open('avatars/default_avatar.png', "rb") as image_file:
+        with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_avatar = base64.b64encode(image_file.read())
     else:
         with open(str(profile.avatar), "rb") as image_file:
             encoded_avatar = base64.b64encode(image_file.read())
     if not profile.real_avatar:
-        with open('avatars/default_avatar.png', "rb") as image_file:
+        with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
         with open(str(profile.real_avatar), "rb") as image_file_2:

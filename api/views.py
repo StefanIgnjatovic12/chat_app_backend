@@ -218,7 +218,7 @@ def get_user_profile(request, pk):
     bucket_name = config('BUCKETEER_BUCKET_NAME')
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(bucket_name)
-    for obj in bucket.objects:
+    for obj in bucket.objects.all():
         print('object:')
         print(obj)
         print('object key:')

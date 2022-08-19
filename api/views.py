@@ -11,7 +11,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 import random
 import requests
-
+from smart_open import open as smart_opener
 
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
@@ -224,7 +224,8 @@ def get_user_profile(request, pk):
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
-        with open('media/avatars/stefan.png', "rb") as image_file_2:
+        with smart_opener('s3://media/avatars/stefan.png') as image_file_2:
+        # with open('media/avatars/stefan.png', "rb") as image_file_2:
         # with open(str(profile.real_avatar), "rb") as image_file_2:
             encoded_real_avatar = base64.b64encode(image_file_2.read())
 

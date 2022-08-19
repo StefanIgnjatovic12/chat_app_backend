@@ -163,27 +163,19 @@ AWS_S3_SIGNATURE_VERSION = config('S3_SIGNATURE_VERSION', default='s3v4')
 AWS_S3_ENDPOINT_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 
-s3 = boto3.resource('s3', region_name=AWS_S3_REGION_NAME, aws_access_key_id=AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-bucket = s3.Bucket(AWS_STORAGE_BUCKET_NAME)
-for obj in bucket.objects.all():
-    print('object:')
-    print(obj)
-    print('object key:')
-    print(obj.key)
-# if not LOCAL_SERVE_STATIC_FILES:
-#     STATIC_DEFAULT_ACL = 'public-read'
-#     STATIC_LOCATION = 'static'
-#     STATIC_URL = f'{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/'
-#     STATICFILES_STORAGE = 'chat_app_backend.storage_backends.StaticStorage'
+
+STATIC_DEFAULT_ACL = 'public-read'
+STATIC_LOCATION = 'static'
+STATIC_URL = f'{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/'
+STATICFILES_STORAGE = 'chat_app_backend.storage_backends.StaticStorage'
 #
 #
 # if not LOCAL_SERVE_MEDIA_FILES:
-#     PUBLIC_MEDIA_DEFAULT_ACL = 'public-read'
-#     PUBLIC_MEDIA_LOCATION = 'media/public'
-#
-#     MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/'
-#     DEFAULT_FILE_STORAGE = 'chat_app_backend.storage_backends.PublicMediaStorage'
+PUBLIC_MEDIA_DEFAULT_ACL = 'public-read'
+PUBLIC_MEDIA_LOCATION = 'media/public'
+
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/'
+DEFAULT_FILE_STORAGE = 'chat_app_backend.storage_backends.PublicMediaStorage'
 #
 #     PRIVATE_MEDIA_DEFAULT_ACL = 'private'
 #     PRIVATE_MEDIA_LOCATION = 'media/private'

@@ -139,10 +139,10 @@ USE_TZ = True
 # MEDIA_ROOT = 'C:/Users/Stefan/Desktop/python/chat_app_backend/'
 # MEDIA_URL = ('avatars/')
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'collected-static'
 
-MEDIA_URL = '/media/'
+# MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'collected-media'
 
 # The following configs determine if files get served from the server or an S3 storage
@@ -169,18 +169,11 @@ STATIC_LOCATION = 'static'
 STATIC_URL = f'{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/'
 STATICFILES_STORAGE = 'utils.storage_backends.StaticStorage'
 
-#
-#
-# if not LOCAL_SERVE_MEDIA_FILES:
 PUBLIC_MEDIA_DEFAULT_ACL = 'public-read'
 PUBLIC_MEDIA_LOCATION = 'media/public'
-
 MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/'
 DEFAULT_FILE_STORAGE = 'utils.storage_backends.PublicMediaStorage'
-#
-#     PRIVATE_MEDIA_DEFAULT_ACL = 'private'
-#     PRIVATE_MEDIA_LOCATION = 'media/private'
-#     PRIVATE_FILE_STORAGE = 'chat_app_backend.storage_backends.PrivateMediaStorage'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

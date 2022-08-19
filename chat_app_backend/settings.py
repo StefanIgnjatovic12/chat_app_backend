@@ -167,7 +167,7 @@ AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 STATIC_DEFAULT_ACL = 'public-read'
 STATIC_LOCATION = 'static'
 STATIC_URL = f'{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/'
-STATICFILES_STORAGE = 'chat_app_backend.utils.storage_backends.StaticStorage'
+STATICFILES_STORAGE = 'utils.storage_backends.StaticStorage'
 
 #
 #
@@ -176,7 +176,7 @@ PUBLIC_MEDIA_DEFAULT_ACL = 'public-read'
 PUBLIC_MEDIA_LOCATION = 'media/public'
 
 MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/'
-DEFAULT_FILE_STORAGE = 'chat_app_backend.utils.storage_backends.PublicMediaStorage'
+DEFAULT_FILE_STORAGE = 'utils.storage_backends.PublicMediaStorage'
 #
 #     PRIVATE_MEDIA_DEFAULT_ACL = 'private'
 #     PRIVATE_MEDIA_LOCATION = 'media/private'

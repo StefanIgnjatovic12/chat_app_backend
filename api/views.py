@@ -218,16 +218,16 @@ def create_new_message(request):
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
     user = User.objects.get(id=pk)
-    session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-    s3 = boto3.resource('s3', region_name=AWS_S3_REGION_NAME, aws_access_key_id=AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-    bucket = s3.Bucket(AWS_STORAGE_BUCKET_NAME)
-    for obj in bucket.objects.all():
-        print('object:')
-        print(obj)
-        print('object key:')
-        print(obj.key)
+    # session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
+    #                         aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    # s3 = boto3.resource('s3', region_name=AWS_S3_REGION_NAME, aws_access_key_id=AWS_ACCESS_KEY_ID,
+    #                       aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    # bucket = s3.Bucket(AWS_STORAGE_BUCKET_NAME)
+    # for obj in bucket.objects.all():
+    #     print('object:')
+    #     print(obj)
+    #     print('object key:')
+    #     print(obj.key)
     if profile.real_avatar.url:
         print(profile.real_avatar.url)
     else: print('nothin')
@@ -365,7 +365,14 @@ def check_reveal_status(request, pk):
     # the match will only occur if the user has revealed their profile within the convo in question
     convo = Conversation.objects.get(id=pk)
     user = request.user
-
+    s3 = boto3.resource('s3', region_name=AWS_S3_REGION_NAME, aws_access_key_id=AWS_ACCESS_KEY_ID,
+                        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    bucket = s3.Bucket(AWS_STORAGE_BUCKET_NAME)
+    for obj in bucket.objects.all():
+        print('object:')
+        print(obj)
+        print('object key:')
+        print(obj.key)
     # Both members have revealed
     if (convo.second_member_id is not None
             and convo.first_member_id is not None

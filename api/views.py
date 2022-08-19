@@ -17,6 +17,8 @@ from decouple import config
 
 AWS_ACCESS_KEY_ID = config('BUCKETEER_AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = config('BUCKETEER_AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = config('BUCKETEER_BUCKET_NAME')
+AWS_S3_REGION_NAME = config('BUCKETEER_AWS_REGION')
 
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
@@ -216,11 +218,11 @@ def create_new_message(request):
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
     user = User.objects.get(id=pk)
-    session = boto3.Session(aws_access_key_id=config('BUCKETEER_AWS_ACCESS_KEY_ID'),
-                            aws_secret_access_key=config('BUCKETEER_AWS_SECRET_ACCESS_KEY'))
-    bucket_name = config('BUCKETEER_BUCKET_NAME')
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(bucket_name)
+    session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    s3 = boto3.client('s3', region_name=AWS_S3_REGION_NAME, aws_access_key_id=AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    bucket = s3.Bucket(AWS_STORAGE_BUCKET_NAME)
     for obj in bucket.objects.all():
         print('object:')
         print(obj)
@@ -239,7 +241,7 @@ def get_user_profile(request, pk):
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
-        with smart_opener(f's3://{bucket_name}/media/avatars/stefan.png', "rb", transport_params={'client':
+        with smart_opener(f's3://{AWS_STORAGE_BUCKET_NAME}/media/avatars/stefan.png', "rb", transport_params={'client':
             session.client(
                 's3')}) \
                 as image_file_2:

@@ -234,7 +234,9 @@ def get_user_profile(request, pk):
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
-        with smart_opener(f's3://{AWS_STORAGE_BUCKET_NAME}/media/avatars/stefan.png', "rb", transport_params={'client':
+        with smart_opener(f's3://{AWS_STORAGE_BUCKET_NAME}/media/public/avatars/{user.username}.png', "rb",
+                          transport_params={
+            'client':
             session.client(
                 's3')}) \
                 as image_file_2:

@@ -15,6 +15,9 @@ import requests
 from smart_open import open as smart_opener
 from decouple import config
 
+AWS_ACCESS_KEY_ID = config('BUCKETEER_AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = config('BUCKETEER_AWS_SECRET_ACCESS_KEY')
+
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
     # gets all messages belonging to certain conversation

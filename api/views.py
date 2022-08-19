@@ -216,6 +216,13 @@ def get_user_profile(request, pk):
     session = boto3.Session(aws_access_key_id=config('BUCKETEER_AWS_ACCESS_KEY_ID'),
                             aws_secret_access_key=config('BUCKETEER_AWS_SECRET_ACCESS_KEY'))
     bucket_name = config('BUCKETEER_BUCKET_NAME')
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    for obj in bucket.objects:
+        print('object:')
+        print(obj)
+        print('object key:')
+        print(obj.key)
     if profile.real_avatar.url:
         print(profile.real_avatar.url)
     else: print('nothin')

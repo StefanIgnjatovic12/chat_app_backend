@@ -20,6 +20,7 @@ AWS_SECRET_ACCESS_KEY = config('BUCKETEER_AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = config('BUCKETEER_BUCKET_NAME')
 AWS_S3_REGION_NAME = config('BUCKETEER_AWS_REGION')
 
+
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
     # gets all messages belonging to certain conversation
@@ -112,7 +113,6 @@ def get_partner_and_last_message_from_user(request, pk):
                 else:
                     with open(str(profile.real_avatar), "rb") as image_file:
                         encoded_real_avatar = base64.b64encode(image_file.read())
-
 
                 # for case when new chat was created but there are no messages exchanged yet
                 if conversation.messages.last() is not None:
@@ -223,7 +223,8 @@ def get_user_profile(request, pk):
 
     if profile.real_avatar.url:
         print(profile.real_avatar.url)
-    else: print('nothin')
+    else:
+        print('nothin')
     if not profile.avatar:
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_avatar = base64.b64encode(image_file.read())
@@ -234,14 +235,21 @@ def get_user_profile(request, pk):
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
-        with smart_opener(f's3://{AWS_STORAGE_BUCKET_NAME}/media/public/avatars/{user.username}.png', "rb",
+
+        # with smart_opener(f's3://{AWS_STORAGE_BUCKET_NAME}/media/public/avatars/{user.username}.png', "rb",
+        #                   transport_params={
+        #                       'client':
+        #                           session.client(
+        #                               's3')}) \
+        #         as image_file_2:
+        with smart_opener('s3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/media/public/avatars/stefan.png', "rb",
                           transport_params={
-            'client':
-            session.client(
-                's3')}) \
+                              'client':
+                                  session.client(
+                                      's3')}) \
                 as image_file_2:
-        # with open('media/avatars/stefan.png', "rb") as image_file_2:
-        # with open(str(profile.real_avatar), "rb") as image_file_2:
+            # with open('media/avatars/stefan.png', "rb") as image_file_2:
+            # with open(str(profile.real_avatar), "rb") as image_file_2:
             encoded_real_avatar = base64.b64encode(image_file_2.read())
 
     return Response([{

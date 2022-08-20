@@ -218,9 +218,15 @@ def create_new_message(request):
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
     user = User.objects.get(id=pk)
+    s3 = boto3.resource('s3', aws_access_key_id=AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
     session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-
+    bucket = s3.Bucket(AWS_STORAGE_BUCKET_NAME)
+    for object in bucket.objects.all():
+        print('Bucket name: ' + object.bucket_name)
+        print('Object key: ' + object.key)
+    # Using the bucket name above
     if profile.real_avatar.url:
         print(profile.real_avatar.url)
     else:

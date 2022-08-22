@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 import pathlib
-
+import os
 # Create your models here.
 
 
@@ -29,9 +29,11 @@ class Message(models.Model):
         return self.message
 
 
-def _profile_avatar_upload_path(instance, filename):
-    """Provides a clean upload path for user avatar images
-    """
+def _real_avatar_upload_path(instance, filename):
+    file_extension = pathlib.Path(filename).suffix
+    return f'real_avatars/{instance.user.username}{file_extension}'
+
+def _avatar_upload_path(instance, filename):
     file_extension = pathlib.Path(filename).suffix
     return f'avatars/{instance.user.username}{file_extension}'
 
@@ -51,8 +53,7 @@ class Profile(models.Model):
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/')
-
+    avatar = models.ImageField(upload_to=_avatar_upload_path)
     age = models.CharField(max_length=3, null=True, blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=100, null=True, blank=True)
     location = models.CharField(max_length=50, null=True, blank=True)
@@ -60,8 +61,13 @@ class Profile(models.Model):
     interests = models.CharField(max_length=300, null=True, blank=True)
     reason = models.CharField(choices=REASON_CHOICES, max_length=100, null=True, blank=True)
     real_name = models.CharField(max_length=50, null=True, blank=True)
-    real_avatar = models.ImageField(upload_to=_profile_avatar_upload_path, null=True, blank=True)
+    real_avatar = models.ImageField(upload_to=_real_avatar_upload_path, null=True, blank=True)
     is_online = models.BooleanField(default=False)
+
+    def extension(self):
+        string = str(self.real_avatar)
+        avatar, extension = os.path.splitext(string)
+        return extension
 
     def __str__(self):
         return self.user.username

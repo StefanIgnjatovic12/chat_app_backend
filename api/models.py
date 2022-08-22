@@ -31,11 +31,11 @@ class Message(models.Model):
 
 def _real_avatar_upload_path(instance, filename):
     file_extension = pathlib.Path(filename).suffix
-    return f'real_avatars/{instance.user.username}{file_extension}'
+    return f'real_avatars/{instance.user.username}_default_avatar{file_extension}'
 
 def _avatar_upload_path(instance, filename):
     file_extension = pathlib.Path(filename).suffix
-    return f'avatars/{instance.user.username}{file_extension}'
+    return f'avatars/{instance.user.username}_real_avatar{file_extension}'
 
 class Profile(models.Model):
 

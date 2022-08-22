@@ -253,7 +253,7 @@ def get_user_profile(request, pk):
                 as image_file_2:
             encoded_default_avatar = base64.b64encode(image_file_2.read())
     except:
-        with open('media/avatars/default_avatar.png', "rb") as image_file:
+        with open('avatars/default_avatar.png', "rb") as image_file:
             encoded_default_avatar = base64.b64encode(image_file.read())
 
     try:
@@ -267,7 +267,7 @@ def get_user_profile(request, pk):
                 as image_file_2:
             encoded_real_avatar = base64.b64encode(image_file_2.read())
     except:
-        with open('media/avatars/default_avatar.png', "rb") as image_file:
+        with open('avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
 
     return Response([{

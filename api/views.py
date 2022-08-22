@@ -220,28 +220,7 @@ def get_user_profile(request, pk):
     user = User.objects.get(id=pk)
     session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-    # if profile.real_avatar.url:
-    #     print(profile.real_avatar.url)
-    # else:
-    #     print('nothin')
-    # if not profile.avatar:
-    #     with open('media/avatars/default_avatar.png', "rb") as image_file:
-    #         encoded_avatar = base64.b64encode(image_file.read())
-    # else:
-    #     with open(str(profile.avatar), "rb") as image_file:
-    #         encoded_avatar = base64.b64encode(image_file.read())
-    # if not profile.real_avatar:
-    #     with open('media/avatars/default_avatar.png', "rb") as image_file:
-    #         encoded_real_avatar = base64.b64encode(image_file.read())
-    # else:
-    #     with smart_opener(f's3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57'
-    #                       f'-f884d7245601/media/public/real_avatars/{user.username}{profile.extension()}', "rb",
-    #                       transport_params={
-    #                           'client':
-    #                               session.client(
-    #                                   's3')}) \
-    #             as image_file_2:
-    #         encoded_real_avatar = base64.b64encode(image_file_2.read())
+
     try:
         with smart_opener(f's3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57'
                           f'-f884d7245601/media/public/avatars/{user.username}_default_avatar{profile.extension()}',

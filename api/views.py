@@ -241,21 +241,12 @@ def get_user_profile(request, pk):
         with open('media/avatars/default_avatar.png', "rb") as image_file:
             encoded_real_avatar = base64.b64encode(image_file.read())
     else:
-
-        # with smart_opener(f's3://{AWS_STORAGE_BUCKET_NAME}/media/public/avatars/{user.username}.png', "rb",
-        #                   transport_params={
-        #                       'client':
-        #                           session.client(
-        #                               's3')}) \
-        #         as image_file_2:
         with smart_opener('s3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/media/public/avatars/stefan.png', "rb",
                           transport_params={
                               'client':
                                   session.client(
                                       's3')}) \
                 as image_file_2:
-            # with open('media/avatars/stefan.png', "rb") as image_file_2:
-            # with open(str(profile.real_avatar), "rb") as image_file_2:
             encoded_real_avatar = base64.b64encode(image_file_2.read())
 
     return Response([{

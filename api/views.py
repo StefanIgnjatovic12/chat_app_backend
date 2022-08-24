@@ -89,9 +89,9 @@ def get_conversations_from_user(request, pk):
 def get_partner_and_last_message_from_user(request, pk):
     # Get conversation partner and last message from conversation
     # active user sending request
-    user = User.objects.get(id=pk)
+    requesting_user = User.objects.get(id=pk)
     # conversations belonging to active user
-    conversations = user.conversation.all()
+    conversations = requesting_user.conversation.all()
     # print(f'length of convo queryset: {len(conversations)}')
     conversation_list = []
     # loop through their conversation objects
@@ -99,9 +99,10 @@ def get_partner_and_last_message_from_user(request, pk):
         # loop through members belonging to each conversation the active user is apart of
         for member in conversation.members.all():
             # if the member of the conversation isnt the active user its the convo partner
-            if member != user:
+            if member != requesting_user:
+                convo_partner_user = User.objects.get(id=member.id)
                 profile = Profile.objects.get(user_id=member.id)
-                encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(user, profile)
+                encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(convo_partner_user, profile)
                 # if not profile.avatar:
                 #     with open('avatars/default_avatar.png', "rb") as image_file:
                 #         encoded_avatar = base64.b64encode(image_file.read())

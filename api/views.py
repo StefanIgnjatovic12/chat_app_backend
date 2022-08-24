@@ -221,7 +221,7 @@ def get_user_profile(request, pk):
     user = User.objects.get(id=pk)
     session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-    encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(user)
+    encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(user, profile)
     # try:
     #     with smart_opener(f's3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57'
     #                       f'-f884d7245601/media/public/avatars/{user.username}_default_avatar{profile.extension()}',

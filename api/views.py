@@ -14,7 +14,7 @@ import random
 import requests
 from smart_open import open as smart_opener
 from decouple import config
-from utils.try_except_block import AvatarsTryExceptBlock
+from utils.try_except_block import DefaultAvatarTryExceptBlock, RealAvatarTryExceptBlock
 
 AWS_ACCESS_KEY_ID = config('BUCKETEER_AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = config('BUCKETEER_AWS_SECRET_ACCESS_KEY')
@@ -102,20 +102,9 @@ def get_partner_and_last_message_from_user(request, pk):
             if member != requesting_user:
                 convo_partner_user = User.objects.get(id=member.id)
                 profile = Profile.objects.get(user_id=member.id)
-                encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(convo_partner_user, profile)
-                # if not profile.avatar:
-                #     with open('avatars/default_avatar.png', "rb") as image_file:
-                #         encoded_avatar = base64.b64encode(image_file.read())
-                # else:
-                #     with open(str(profile.avatar), "rb") as image_file:
-                #         encoded_avatar = base64.b64encode(image_file.read())
-                # if not profile.real_avatar:
-                #     with open('avatars/default_avatar.png', "rb") as image_file:
-                #         encoded_real_avatar = base64.b64encode(image_file.read())
-                #
-                # else:
-                #     with open(str(profile.real_avatar), "rb") as image_file:
-                #         encoded_real_avatar = base64.b64encode(image_file.read())
+
+                encoded_default_avatar = DefaultAvatarTryExceptBlock(convo_partner_user, profile)
+                encoded_real_avatar = RealAvatarTryExceptBlock(convo_partner_user, profile)
 
                 # for case when new chat was created but there are no messages exchanged yet
                 if conversation.messages.last() is not None:
@@ -152,14 +141,16 @@ def get_messages_with_user(request, pk, name):
     active_user = User.objects.get(id=pk)
     # all convos belonging to that user
     conversations = active_user.conversation.all()
-    conv_partner = User.objects.get(username=name)
+    conv_partner_user = User.objects.get(username=name)
+    conv_partner_profile = Profile.objects.get(user_id=conv_partner_user.id)
     # if the user hasnt set their avatar or real avatar, use a pre-made one
-    if not Profile.objects.get(user_id=conv_partner.id).avatar:
-        with open('avatars/default_avatar.png', "rb") as image_file:
-            encoded_avatar = base64.b64encode(image_file.read())
-    else:
-        with open(str(Profile.objects.get(user_id=conv_partner.id).avatar), "rb") as image_file:
-            encoded_avatar = base64.b64encode(image_file.read())
+    encoded_default_avatar = DefaultAvatarTryExceptBlock(conv_partner_user, conv_partner_profile)
+    # if not Profile.objects.get(user_id=conv_partner_user.id).avatar:
+    #     with open('avatars/default_avatar.png', "rb") as image_file:
+    #         encoded_avatar = base64.b64encode(image_file.read())
+    # else:
+    #     with open(str(Profile.objects.get(user_id=conv_partner_user.id).avatar), "rb") as image_file:
+    #         encoded_avatar = base64.b64encode(image_file.read())
     sorted_data = []
     # loop through all their conversation objects
     for convo in conversations:
@@ -167,19 +158,21 @@ def get_messages_with_user(request, pk, name):
         for member in convo.members.all():
             # match conversation partner to the name parameter passed
             if member.username == name:
-                profile = Profile.objects.get(user_id=member.id)
-                if not profile.real_avatar:
-                    with open('avatars/default_avatar.png', "rb") as image_file:
-                        encoded_real_avatar = base64.b64encode(image_file.read())
-                else:
-                    with open(str(profile.real_avatar), "rb") as image_file_2:
-                        encoded_real_avatar = base64.b64encode(image_file_2.read())
+                member_profile = Profile.objects.get(user_id=member.id)
+                user = User.objects.get(id=member.id)
+                encoded_real_avatar = RealAvatarTryExceptBlock(user, member_profile)
+                # if not profile.real_avatar:
+                #     with open('avatars/default_avatar.png', "rb") as image_file:
+                #         encoded_real_avatar = base64.b64encode(image_file.read())
+                # else:
+                #     with open(str(profile.real_avatar), "rb") as image_file_2:
+                #         encoded_real_avatar = base64.b64encode(image_file_2.read())
                 sorted_data.append(
                     {
                         'convo_id': convo.id,
                         'conv_partner': name,
-                        'conv_partner_real_name': profile.real_name,
-                        'avatar': encoded_avatar,
+                        'conv_partner_real_name': member_profile.real_name,
+                        'avatar': encoded_default_avatar,
                         'real_avatar': encoded_real_avatar,
                         'messages': [],
                         'last_message': convo.messages.last().message if convo.messages.last() is not None else ''
@@ -221,7 +214,8 @@ def create_new_message(request):
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
     user = User.objects.get(id=pk)
-    encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(user, profile)
+    encoded_default_avatar = DefaultAvatarTryExceptBlock(user, profile)
+    encoded_real_avatar = RealAvatarTryExceptBlock(user, profile)
     return Response([{
         'age': profile.age,
         'gender': profile.gender,
@@ -306,13 +300,15 @@ def get_revealed_profiles_from_convo(request, pk):
             if request.user != member:
                 # print(f'This is the member {member}')
                 profile = Profile.objects.get(user_id=member.id)
+                member_user = User.objects.get(id=member.id)
                 # if not profile.avatar:
-                if not profile.real_avatar:
-                    with open('avatars/default_avatar.png', "rb") as image_file:
-                        encoded_real_avatar = base64.b64encode(image_file.read())
-                else:
-                    with open(str(profile.real_avatar), "rb") as image_file_2:
-                        encoded_real_avatar = base64.b64encode(image_file_2.read())
+                encoded_real_avatar = RealAvatarTryExceptBlock(member_user, profile)
+                # if not profile.real_avatar:
+                #     with open('avatars/default_avatar.png', "rb") as image_file:
+                #         encoded_real_avatar = base64.b64encode(image_file.read())
+                # else:
+                #     with open(str(profile.real_avatar), "rb") as image_file_2:
+                #         encoded_real_avatar = base64.b64encode(image_file_2.read())
                 return Response([{
                     'username': member.username,
                     'age': profile.age,

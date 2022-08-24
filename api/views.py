@@ -101,19 +101,20 @@ def get_partner_and_last_message_from_user(request, pk):
             # if the member of the conversation isnt the active user its the convo partner
             if member != user:
                 profile = Profile.objects.get(user_id=member.id)
-                if not profile.avatar:
-                    with open('avatars/default_avatar.png', "rb") as image_file:
-                        encoded_avatar = base64.b64encode(image_file.read())
-                else:
-                    with open(str(profile.avatar), "rb") as image_file:
-                        encoded_avatar = base64.b64encode(image_file.read())
-                if not profile.real_avatar:
-                    with open('avatars/default_avatar.png', "rb") as image_file:
-                        encoded_real_avatar = base64.b64encode(image_file.read())
-
-                else:
-                    with open(str(profile.real_avatar), "rb") as image_file:
-                        encoded_real_avatar = base64.b64encode(image_file.read())
+                encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(user, profile)
+                # if not profile.avatar:
+                #     with open('avatars/default_avatar.png', "rb") as image_file:
+                #         encoded_avatar = base64.b64encode(image_file.read())
+                # else:
+                #     with open(str(profile.avatar), "rb") as image_file:
+                #         encoded_avatar = base64.b64encode(image_file.read())
+                # if not profile.real_avatar:
+                #     with open('avatars/default_avatar.png', "rb") as image_file:
+                #         encoded_real_avatar = base64.b64encode(image_file.read())
+                #
+                # else:
+                #     with open(str(profile.real_avatar), "rb") as image_file:
+                #         encoded_real_avatar = base64.b64encode(image_file.read())
 
                 # for case when new chat was created but there are no messages exchanged yet
                 if conversation.messages.last() is not None:
@@ -132,7 +133,7 @@ def get_partner_and_last_message_from_user(request, pk):
                         'last_message': last_message,
                         'created_on': message_created_on if message_created_on == '' else
                         message_created_on.strftime("%d.%m.%Y %H:%M:%S"),
-                        'avatar': encoded_avatar,
+                        'avatar': encoded_default_avatar,
                         'real_avatar': encoded_real_avatar,
                         'is_online': profile.is_online
 
@@ -219,37 +220,7 @@ def create_new_message(request):
 def get_user_profile(request, pk):
     profile = Profile.objects.get(user_id=pk)
     user = User.objects.get(id=pk)
-    session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
     encoded_default_avatar, encoded_real_avatar = AvatarsTryExceptBlock(user, profile)
-    # try:
-    #     with smart_opener(f's3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57'
-    #                       f'-f884d7245601/media/public/avatars/{user.username}_default_avatar{profile.extension()}',
-    #                       "rb",
-    #                       transport_params={
-    #                           'client':
-    #                               session.client(
-    #                                   's3')}) \
-    #             as image_file_2:
-    #         encoded_default_avatar = base64.b64encode(image_file_2.read())
-    # except:
-    #     with open('avatars/default_avatar.png', "rb") as image_file:
-    #         encoded_default_avatar = base64.b64encode(image_file.read())
-    #
-    # try:
-    #     with smart_opener(f's3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57'
-    #                       f'-f884d7245601/media/public/real_avatars/{user.username}_real_avatar{profile.extension()}',
-    #                       "rb",
-    #                       transport_params={
-    #                           'client':
-    #                               session.client(
-    #                                   's3')}) \
-    #             as image_file_2:
-    #         encoded_real_avatar = base64.b64encode(image_file_2.read())
-    # except:
-    #     with open('avatars/default_avatar.png', "rb") as image_file:
-    #         encoded_real_avatar = base64.b64encode(image_file.read())
-
     return Response([{
         'age': profile.age,
         'gender': profile.gender,

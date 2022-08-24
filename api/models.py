@@ -64,8 +64,13 @@ class Profile(models.Model):
     real_avatar = models.ImageField(upload_to=_real_avatar_upload_path, null=True, blank=True)
     is_online = models.BooleanField(default=False)
 
-    def extension(self):
+    def extension_real_avatar(self):
         string = str(self.real_avatar)
+        avatar, extension = os.path.splitext(string)
+        return extension
+
+    def extension_default_avatar(self):
+        string = str(self.avatar)
         avatar, extension = os.path.splitext(string)
         return extension
 

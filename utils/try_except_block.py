@@ -10,6 +10,8 @@ session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID,
                             aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
 
 def AvatarsTryExceptBlock(user, profile):
+    print(f'this is user: {user}')
+    print(f'this is profile: {profile}')
     try:
         with smart_opener(f's3://bucketeer-0f6cb5f5-34a1-49a1-ab57-f884d7245601/bucketeer-0f6cb5f5-34a1-49a1-ab57'
                           f'-f884d7245601/media/public/avatars/{user.username}_default_avatar{profile.extension()}',

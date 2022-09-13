@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import (
 )
 
 
+
 urlpatterns = [
     path('messages/<str:pk>', views.get_messages_from_conversation),
     path('conversation/<str:pk>', views.get_conversation_from_message),

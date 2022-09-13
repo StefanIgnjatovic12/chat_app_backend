@@ -1,26 +1,15 @@
 import json
-
-import boto3
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from api.models import Conversation, Message, Profile
 from .serializers import ConversationSerializer, MessageSerializer, ProfileSerializer
-import base64
 import datetime
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.dispatch import receiver
 import random
 import requests
-from smart_open import open as smart_opener
-from decouple import config
 from utils.try_except_block import DefaultAvatarTryExceptBlock, RealAvatarTryExceptBlock
-
-AWS_ACCESS_KEY_ID = config('BUCKETEER_AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = config('BUCKETEER_AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = config('BUCKETEER_BUCKET_NAME')
-AWS_S3_REGION_NAME = config('BUCKETEER_AWS_REGION')
-
 
 @api_view(['GET'])
 def get_messages_from_conversation(request, pk):
@@ -584,6 +573,14 @@ def create_new_chat(request):
             convo.members.set(members)
             # break out of while loop after convo is created
             random_user_passes_checks = True
+            return Response(
+                [
+                    {
+                        'convo_id': convo.id,
+                        'messages': None
+                    }
+                ]
+            )
     return Response('New chat created')
 
 

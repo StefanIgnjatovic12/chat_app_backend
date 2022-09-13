@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--m82r=436id=+l6&#+3p45rtu$1r5*7i)(vy0=sy0p=@1!$(kz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['drf-react-chat-backend.herokuapp.com']
 
